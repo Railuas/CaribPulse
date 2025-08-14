@@ -32,3 +32,4 @@ export const ISLANDS: Island[] = [
   { code: 'TC', name: 'Turks & Caicos', lat: 21.6940, lon: -71.7979 },
   { code: 'VI', name: 'US Virgin Islands', lat: 18.3358, lon: -64.8963 }
 ];
+export const byCode = (code:string)=> ISLANDS.find(i=>i.code.toLowerCase()===code.toLowerCase());
