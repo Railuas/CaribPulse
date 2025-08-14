@@ -1,3 +1,7 @@
-/** @type {import('next').NextConfig} */
-const nextConfig = { experimental: { serverActions: { bodySizeLimit: '2mb' } } };
+/** Disable the app/ directory so Next uses the pages router only */
+const nextConfig = {
+  experimental: { appDir: false },
+  reactStrictMode: false,
+};
+
 export default nextConfig;
