@@ -1,12 +1,12 @@
 'use client';
 import React, { useMemo, useState } from "react";
 
-type Point = { lat: number; lon: number; name?: string };
-type Hour = { t: number; temp: number; wind: number; rain: number };
-type Alert = { title: string; desc?: string; severity?: "advisory"|"watch"|"warning"|string; source?: string };
-type Storm = { name: string; category?: string; movement?: string; pressure?: number; winds?: number };
+export type Point = { lat: number; lon: number; name?: string };
+export type Hour = { t: number; temp: number; wind: number; rain: number };
+export type Alert = { title: string; desc?: string; severity?: "advisory"|"watch"|"warning"|string; source?: string };
+export type Storm = { name: string; category?: string; movement?: string; pressure?: number; winds?: number };
 
-function SparkInline({data, h=42, strokeWidth=2, ariaLabel}:{data:number[]; h?:number; strokeWidth?:number; ariaLabel?:string}){
+function SparkInline({data, h=42, strokeWidth=2, ariaLabel}:{data:Readonly<number[]>; h?:number; strokeWidth?:number; ariaLabel?:string}){
   const w = Math.max(120, data.length * 16);
   const min = Math.min(...data);
   const max = Math.max(...data);
@@ -47,7 +47,7 @@ export default function WeatherStage({
   hourly,
   alerts=[],
   storms=[]
-}:{ point:Point; hourly:Hour[]; alerts?:Alert[]; storms?:Storm[] }){
+}:{ point:Point; hourly:Readonly<Hour[]>; alerts?:Readonly<Alert[]>; storms?:Readonly<Storm[]> }){
   const [tab, setTab] = useState<"radar"|"hourly"|"alerts"|"storms">("radar");
   const zoom = 6;
   const iframeSrc = useMemo(()=>{
@@ -112,7 +112,7 @@ export default function WeatherStage({
             <ul className="alerts">
               {alerts.map((a, i)=>(
                 <li key={i} className={`alert ${a.severity ?? "advisory"}`} data-animate="rise">
-                  <div className="pill">{(a.severity ?? "advisory").toUpperCase()}</div>
+                  <div className="pill">{String(a.severity ?? "advisory").toUpperCase()}</div>
                   <div className="alert-body">
                     <h5>{a.title}</h5>
                     {a.desc && <p>{a.desc}</p>}
