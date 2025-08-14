@@ -12,5 +12,7 @@ export async function GET(req: NextRequest) {
     }
     rows.sort((a,b)=> a.route.localeCompare(b.route))
     return Response.json({ rows })
-  } catch(e) { return Response.json({ rows: [] }) }
+  } catch(e) {
+    return Response.json({ rows: [] })
+  }
 }

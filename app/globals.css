@@ -3,9 +3,10 @@
 @tailwind utilities;
 :root { color-scheme: dark; }
 html, body { height: 100%; }
-body { background:#0a0a0a; color:#e5e5e5; }
-.container { margin-left:auto; margin-right:auto; max-width:80rem; padding:0 1rem;}
-.card { background: rgba(23,23,23,.7); border:1px solid #262626; border-radius:1rem; box-shadow: 0 8px 24px rgba(0,0,0,.35); }
-.btn { display:inline-flex; align-items:center; gap:.5rem; border-radius:.75rem; padding:.5rem 1rem; font-weight:600; background:#2563eb; transition:all .2s }
-.btn:hover{ background:#3b82f6 }
-.input { background:#0f0f0f; border:1px solid #262626; border-radius:.75rem; padding:.5rem .75rem; width:100%; outline:none }
+body { @apply bg-neutral-950 text-neutral-100; }
+.container { @apply mx-auto max-w-7xl px-4; }
+.card { @apply bg-neutral-900/60 rounded-2xl border border-neutral-800 shadow-lg; }
+.btn { @apply inline-flex items-center gap-2 rounded-xl px-4 py-2 font-medium bg-brand-600 hover:bg-brand-500 active:bg-brand-700 transition; }
+.input { @apply bg-neutral-900 border border-neutral-800 rounded-xl px-3 py-2 w-full outline-none focus:ring-2 focus:ring-brand-600; }
+.badge { @apply inline-flex items-center rounded-full border border-neutral-800 bg-neutral-900 px-2.5 py-1 text-xs; }
+img { display:block; max-width:100%; height:auto; }
