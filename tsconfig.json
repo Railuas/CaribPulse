@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "target": "es6",
+    "target": "es5",
     "lib": [
       "dom",
       "dom.iterable",
@@ -9,7 +9,6 @@
     "allowJs": true,
     "skipLibCheck": true,
     "strict": false,
-    "forceConsistentCasingInFileNames": true,
     "noEmit": true,
     "esModuleInterop": true,
     "module": "esnext",
@@ -18,17 +17,18 @@
     "isolatedModules": true,
     "jsx": "preserve",
     "incremental": true,
-    "plugins": [
-      {
-        "name": "next"
-      }
-    ],
     "baseUrl": ".",
     "paths": {
       "@/*": [
         "./*"
       ]
-    }
+    },
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ],
+    "strictNullChecks": true
   },
   "include": [
     "next-env.d.ts",
@@ -40,12 +40,11 @@
     ".next",
     "out",
     "dist",
-    "build",
-    "caribpulse_netlify_ready",
     "caribpulse_netlify_ready/**",
-    "caribpulse_live_connectors",
     "caribpulse_live_connectors/**",
-    "CaribePulse_full_site*",
-    "CaribePulse_weather_stage_addon*"
+    "CaribePulse_*",
+    "caribepulse_*",
+    "caribpulse_*",
+    "**/*.test.*"
   ]
 }

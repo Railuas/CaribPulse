@@ -1,13 +1,11 @@
+import React, { useMemo, useState } from 'react';
 
-'use client';
-import React, { useMemo, useState } from "react";
+export type Point = { lat: number; lon: number; name?: string };
+export type Hour = { t: number; temp: number; wind: number; rain: number };
+export type Alert = { title: string; desc?: string; severity?: 'advisory' | 'watch' | 'warning' | string; source?: string };
+export type Storm = { name: string; category?: string; movement?: string; pressure?: number; winds?: number };
 
-type Point = { lat: number; lon: number; name?: string };
-type Hour = { t: number; temp: number; wind: number; rain: number };
-type Alert = { title: string; desc?: string; severity?: "advisory"|"watch"|"warning"|string; source?: string };
-type Storm = { name: string; category?: string; movement?: string; pressure?: number; winds?: number };
-
-function SparkInline({data, h=42, strokeWidth=2, ariaLabel}:{data:number[]; h?:number; strokeWidth?:number; ariaLabel?:string}){
+function SparkInline({data, h=42, strokeWidth=2, ariaLabel}:{data:ReadonlyArray<number>; h?:number; strokeWidth?:number; ariaLabel?:string}){
   const w = Math.max(120, data.length * 16);
   const min = Math.min(...data);
   const max = Math.max(...data);
@@ -49,14 +47,14 @@ export default function WeatherStage({
   alerts=[],
   storms=[]
 }:{ point:Point; hourly:ReadonlyArray<Hour>; alerts?:ReadonlyArray<Alert>; storms?:ReadonlyArray<Storm> }){
-  const [tab, setTab] = useState<"radar"|"hourly"|"alerts"|"storms">("radar");
+  const [tab, setTab] = useState<'radar'|'hourly'|'alerts'|'storms'>('radar');
   const zoom = 6;
   const iframeSrc = useMemo(()=>{
     const {lat, lon} = point || {lat:17.3, lon:-62.73};
     const p = new URLSearchParams({
       lat: String(lat), lon: String(lon), zoom: String(zoom),
-      level:"surface", overlay:"radar", marker:"true", pressure:"true", forecast:"12",
-      menu:"", message:"", calendar:""
+      level:'surface', overlay:'radar', marker:'true', pressure:'true', forecast:'12',
+      menu:'', message:'', calendar:''
     }).toString();
     return `https://embed.windy.com/embed2.html?${p}`;
   }, [point?.lat, point?.lon]);
@@ -73,19 +71,19 @@ export default function WeatherStage({
       <div className="rings-bg" aria-hidden="true" />
       <header className="stage-head">
         <div className="title">
-          <strong>{point?.name ?? "Weather"}</strong>
+          <strong>{point?.name ?? 'Weather'}</strong>
           <span className="muted">Live radar · Forecast · Alerts</span>
         </div>
         <nav className="tabs">
-          <Tab active={tab==="radar"} onClick={()=>setTab("radar")}>Radar</Tab>
-          <Tab active={tab==="hourly"} onClick={()=>setTab("hourly")}>Hourly</Tab>
-          <Tab active={tab==="alerts"} onClick={()=>setTab("alerts")}>Alerts</Tab>
-          <Tab active={tab==="storms"} onClick={()=>setTab("storms")}>Storms</Tab>
+          <Tab active={tab==='radar'} onClick={()=>setTab('radar')}>Radar</Tab>
+          <Tab active={tab==='hourly'} onClick={()=>setTab('hourly')}>Hourly</Tab>
+          <Tab active={tab==='alerts'} onClick={()=>setTab('alerts')}>Alerts</Tab>
+          <Tab active={tab==='storms'} onClick={()=>setTab('storms')}>Storms</Tab>
         </nav>
       </header>
 
       <div className="stage-body">
-        {tab === "radar" && (
+        {tab === 'radar' && (
           <div className="panel panel-radar" data-animate="fade">
             <div className="glass kpis">
               <KPI label="Now" value={`${Math.round(nowTemp)}°`} sub="Feels near" />
@@ -96,7 +94,7 @@ export default function WeatherStage({
           </div>
         )}
 
-        {tab === "hourly" && (
+        {tab === 'hourly' && (
           <div className="panel panel-hourly" data-animate="fade">
             <div className="row">
               <div className="card" data-animate="float"><h4>Temperature (12h)</h4><SparkInline data={temps.slice(0,12)} ariaLabel="Temperature sparkline" /><div className="axis"><span>{Math.min(...temps)}°</span><span>{Math.max(...temps)}°</span></div></div>
@@ -107,13 +105,13 @@ export default function WeatherStage({
           </div>
         )}
 
-        {tab === "alerts" && (
+        {tab === 'alerts' && (
           <div className="panel panel-alerts" data-animate="fade">
-            {!alerts?.length && <div className="empty">No active advisories. 🌤️</div>}
+            {alerts.length === 0 && <div className="empty">No active advisories. 🌤️</div>}
             <ul className="alerts">
-              {alerts?.map((a, i)=>(
-                <li key={i} className={`alert ${a.severity ?? "advisory"}`} data-animate="rise">
-                  <div className="pill">{String(a.severity ?? "advisory").toUpperCase()}</div>
+              {alerts.map((a, i)=>(
+                <li key={i} className={`alert ${a.severity ?? 'advisory'}`} data-animate="rise">
+                  <div className="pill">{(a.severity ?? 'advisory').toUpperCase()}</div>
                   <div className="alert-body">
                     <h5>{a.title}</h5>
                     {a.desc && <p>{a.desc}</p>}
@@ -125,30 +123,30 @@ export default function WeatherStage({
           </div>
         )}
 
-        {tab === "storms" && (
+        {tab === 'storms' && (
           <div className="panel panel-storms" data-animate="fade">
-            {!storms?.length && <div className="empty">No active named storms in the basin.</div>}
+            {storms.length === 0 && <div className="empty">No active named storms in the basin.</div>}
             <div className="ticker" role="list">
-              {storms?.map((s, i)=>(
+              {storms.map((s, i)=>(
                 <div role="listitem" key={i} className="storm-card" data-animate="pop">
                   <div className="spin-dot" aria-hidden />
                   <div className="storm-name">{s.name}</div>
                   <div className="storm-meta">
                     {s.category && <span>{s.category}</span>}
-                    {typeof s.winds === "number" && <span>{s.winds} kt</span>}
-                    {typeof s.pressure === "number" && <span>{s.pressure} mb</span>}
+                    {typeof s.winds === 'number' && <span>{s.winds} kt</span>}
+                    {typeof s.pressure === 'number' && <span>{s.pressure} mb</span>}
                     {s.movement && <span>{s.movement}</span>}
                   </div>
                 </div>
               ))}
-              {storms?.map((s, i)=>(
+              {storms.map((s, i)=>(
                 <div role="listitem" key={`dup-${i}`} className="storm-card" aria-hidden>
                   <div className="spin-dot" />
                   <div className="storm-name">{s.name}</div>
                   <div className="storm-meta">
                     {s.category && <span>{s.category}</span>}
-                    {typeof s.winds === "number" && <span>{s.winds} kt</span>}
-                    {typeof s.pressure === "number" && <span>{s.pressure} mb</span>}
+                    {typeof s.winds === 'number' && <span>{s.winds} kt</span>}
+                    {typeof s.pressure === 'number' && <span>{s.pressure} mb</span>}
                     {s.movement && <span>{s.movement}</span>}
                   </div>
                 </div>
