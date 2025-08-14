@@ -1,5 +1,5 @@
 import { useRouter } from 'next/router';
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { ISLANDS } from '../../lib/islands';
 import dynamic from 'next/dynamic';
 import NewsList from '../../components/NewsList';
@@ -101,7 +101,6 @@ function Table({ rows, title }:{ rows:ReadonlyArray<any>; title:string }){
   );
 }
 
-import { useEffect, useState } from 'react';
 function IslandSchedules({ icao }:{ icao:string }){
   const [tab, setTab] = useState<'arrivals'|'departures'>('arrivals');
   const [rows, setRows] = useState<ReadonlyArray<any>>([]);
