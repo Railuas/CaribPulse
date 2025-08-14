@@ -4,16 +4,13 @@ export const config = { api: { externalResolver: true } };
 
 type Item = { title: string; link: string; published: number; image?: string; source?: string };
 type Feed = { source: string; url: string; _items?: Item[] };
-type FeedResultOk = { ok: true; source: string; count: number };
-type FeedResultErr = { ok: false; source: string; error: string };
-type FeedResult = FeedResultOk | FeedResultErr;
 
 const FEEDS: Feed[] = [
   { source: 'Loop News Caribbean', url: 'https://www.loopnews.com/feeds/rss/caribbean' },
   { source: 'Nation News (Barbados)', url: 'https://www.nationnews.com/feed/' },
   { source: 'Jamaica Gleaner', url: 'https://jamaica-gleaner.com/rss/news' },
   { source: 'Stabroek News (Guyana)', url: 'https://www.stabroeknews.com/feed/' },
-  { source: 'Antigua Breaking News', url: 'https://antigua.news/feed/' },
+  { source: 'Antigua News', url: 'https://antigua.news/feed/' },
   { source: 'Barbados Today', url: 'https://barbadostoday.bb/feed/' },
 ];
 
@@ -79,30 +76,77 @@ async function parseFeed(xml: string){
   return items;
 }
 
+function keywordsForIsland(slug: string){
+  const table: Record<string,string[]> = {
+    'saint-kitts': ['St. Kitts','Saint Kitts','Basseterre','SKN','Nevis'],
+    'nevis': ['Nevis','Charlestown','St. Kitts'],
+    'barbados': ['Barbados','Bridgetown','Bajan'],
+    'antigua': ['Antigua','St. John’s','St Johns','Antigua & Barbuda'],
+    'barbuda': ['Barbuda','Codrington','Antigua & Barbuda'],
+    'dominica': ['Dominica','Roseau','Dominican (Dominica)'],
+    'saint-lucia': ['Saint Lucia','St. Lucia','Castries'],
+    'trinidad': ['Trinidad','Port of Spain','Trinidad & Tobago'],
+    'tobago': ['Tobago','Scarborough','Trinidad & Tobago'],
+    'saint-vincent': ['St. Vincent','Saint Vincent','Kingstown','SVG'],
+    'bequia': ['Bequia','Port Elizabeth','SVG'],
+    'grenada': ['Grenada','St. George’s'],
+    'jamaica': ['Jamaica','Kingston','Montego Bay'],
+    'guyana': ['Guyana','Georgetown'],
+    'guadeloupe': ['Guadeloupe','Basse-Terre','Pointe-à-Pitre'],
+    'martinique': ['Martinique','Fort-de-France'],
+    'curacao': ['Curaçao','Curacao','Willemstad'],
+    'aruba': ['Aruba','Oranjestad'],
+    'bvi-tortola': ['Tortola','BVI','Road Town'],
+    'usvi-st-thomas': ['St. Thomas','USVI','Charlotte Amalie'],
+    'usvi-st-croix': ['St. Croix','USVI','Christiansted'],
+    'usvi-st-john': ['St. John','USVI'],
+    'sint-maarten': ['Sint Maarten','St. Maarten','Philipsburg'],
+    'saint-martin': ['Saint Martin','St. Martin','Marigot'],
+    'puerto-rico': ['Puerto Rico','San Juan'],
+  };
+  return table[slug] || [slug.replace(/-/g,' ')];
+}
+
 export default async function handler(req: NextApiRequest, res: NextApiResponse){
-  const q = (req.query.q as string | undefined)?.toLowerCase().trim();
+  const qParam = (req.query.q as string | undefined)?.toLowerCase().trim();
+  const island = (req.query.island as string | undefined)?.toLowerCase().trim();
   const debug = 'debug' in req.query;
   try{
-    const results: FeedResult[] = [];
+    const results: Array<{ ok: boolean; source: string; count?: number; error?: string }> = [];
     for (const f of FEEDS){
       try{
         const xml = await fetchText(f.url);
         const items = await parseFeed(xml);
         const withSource = items.map(i => ({ ...i, source: f.source }));
         results.push({ ok:true, source:f.source, count: withSource.length });
-        f._items = withSource;
+        (f as any)._items = withSource;
       }catch(e:any){
         results.push({ ok:false, source:f.source, error: e?.message || 'failed' });
       }
     }
-    if (debug){
-      return res.status(200).json({ ok:true, debug: results });
-    }
+    if (debug) return res.status(200).json({ ok:true, debug: results });
+
     let merged: Item[] = [];
     for (const f of FEEDS){
-      if (f._items) merged = merged.concat(f._items);
+      if ((f as any)._items) merged = merged.concat((f as any)._items);
     }
-    if (q) merged = merged.filter(it => it.title.toLowerCase().includes(q));
+
+    // Apply island keyword filter if island is provided
+    if (island){
+      const kws = keywordsForIsland(island).map(s => s.toLowerCase());
+      merged = merged.filter(it => {
+        const title = (it.title || '').toLowerCase();
+        return kws.some(k => title.includes(k));
+      });
+    }
+
+    // Apply explicit q filter second (if provided)
+    if (qParam){
+      const ql = qParam.toLowerCase();
+      merged = merged.filter(it => (it.title || '').toLowerCase().includes(ql));
+    }
+
+    // Dedup + sort
     const uniq = new Map<string, Item>();
     for (const it of merged) if (!uniq.has(it.link)) uniq.set(it.link, it);
     const items = Array.from(uniq.values()).sort((a,b)=> b.published - a.published).slice(0, 24);

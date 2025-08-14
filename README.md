@@ -1,23 +1,15 @@
-# Island Ferries Tab + News Fix
+# Island‑Filtered News + Remove Flights
 
-This pack:
-1) Adds a **Ferries** tab to each island hub (`/island/[slug]`) that pulls **live schedules** by island:
-   - St. Kitts & Nevis → NASPA (with Water Taxi + SKNVibes fallback)
-   - Antigua & Barbuda → Barbuda Express
-   - Trinidad & Tobago → TTIT
-   - Others → placeholder message (tell me the operator to add).
-
-2) Hardens the **News API** and shows a friendly error if feeds are down.
+This pack does two things:
+1) **Per‑island news** — when you open an island hub, the News tab now shows only headlines that match that island (by name + common synonyms). Uses `/api/news?island=<slug>`.
+2) **Remove Flights** — the Flights tab and nav item are removed, as requested.
 
 ## Files
-- `components/IslandFerriesPanel.tsx` — live ferry UI (auto-selects provider from island name).
-- `pages/island/[slug].tsx` — adds the **Ferries** tab.
-- `pages/api/news.ts` — resilient feed fetcher + image extraction; forces Node runtime.
-- `components/NewsList.tsx` — shows errors / loading states clearly.
+- `pages/api/news.ts` — adds `?island=<slug>` filter (title keyword match), keeps images and debug.
+- `components/NewsList.tsx` — accepts `{ island }` and calls `/api/news?island=...`.
+- `pages/island/[slug].tsx` — removes Flights tab; News tab passes `island={slug}`.
+- `pages/_app.tsx` — removes "Flights" from the top nav.
 
-## Install
-1) Copy these files into your repo (merge/overwrite).
-2) Deploy.
-3) Test:
-   - `/api/news` should return `{ ok: true, items: [...] }`.
-   - Go to an island (e.g., St. Kitts) → Ferries tab → live times appear.
+## Test
+- Open `/api/news?debug=1` — you should see per‑feed status.
+- Go to any island, click **News** — headlines should be specific to that island.

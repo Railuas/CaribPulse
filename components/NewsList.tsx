@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 
 type Item = { title: string; link: string; source: string; published: number; image?: string };
 
-export default function NewsList({ q }: { q?: string }) {
+export default function NewsList({ q, island }: { q?: string; island?: string }) {
   const [items, setItems] = useState<ReadonlyArray<Item>>([]);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
@@ -12,7 +12,10 @@ export default function NewsList({ q }: { q?: string }) {
       setLoading(true);
       setError(null);
       try {
-        const r = await fetch(`/api/news${q ? `?q=${encodeURIComponent(q)}` : ''}`, { cache: 'no-store' });
+        const params = new URLSearchParams();
+        if (q) params.set('q', q);
+        if (island) params.set('island', island);
+        const r = await fetch(`/api/news${params.toString() ? `?${params.toString()}` : ''}`, { cache: 'no-store' });
         const j = await r.json();
         if (!j.ok) setError(j.error || 'News API returned no data');
         setItems(j.items ?? []);
@@ -21,7 +24,7 @@ export default function NewsList({ q }: { q?: string }) {
       }
       setLoading(false);
     })();
-  }, [q]);
+  }, [q, island]);
 
   if (loading && items.length === 0) return <div className="muted small">Fetching headlines…</div>;
   if (error && items.length === 0) return (

@@ -13,7 +13,6 @@ export default function App({ Component, pageProps }: AppProps) {
           <nav className="nav">
             <Link href="/">Home</Link>
             <Link href="/hurricanes">Hurricanes</Link>
-            <Link href="/schedules">Flights</Link>
             <Link href="/ferries">Ferries</Link>
             <Link href="/movies">Movies</Link>
             <a href="https://zoom.earth" rel="noreferrer" target="_blank">Zoom Earth ↗</a>
@@ -32,7 +31,6 @@ export default function App({ Component, pageProps }: AppProps) {
           <div className="footer-links">
             <Link href="/">Home</Link>
             <Link href="/hurricanes">Hurricanes</Link>
-            <Link href="/schedules">Flights</Link>
             <Link href="/ferries">Ferries</Link>
             <Link href="/movies">Movies</Link>
           </div>
