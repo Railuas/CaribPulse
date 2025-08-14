@@ -1,17 +1,3 @@
-/* =========================
-   app/globals.css (CaribePulse)
-   - Tailwind (if installed)
-   - Base theme tokens
-   - Global resets
-   - WeatherStage styles & animations
-   ========================= */
-
-/* Tailwind (safe even if Tailwind isn't used) */
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
-/* ---------- Base theme tokens ---------- */
 :root{
   --bg: #0b0d12;
   --panel: #0f1218;
@@ -26,7 +12,6 @@
   --bad: #e74c3c;
 }
 
-/* ---------- Global reset / body ---------- */
 * { box-sizing: border-box; }
 html, body { height: 100%; }
 html { color-scheme: dark; }
@@ -40,19 +25,14 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Nice default links */
 a { color: var(--accent); text-decoration: none; }
 a:hover { text-decoration: underline; }
 
-/* Utility helpers */
 .muted{ color:var(--muted); }
 .small{ font-size:12px; opacity:.95; }
 .stage-wrap{ min-height: 520px; }
 
-/* =========================
-   WEATHER STAGE (widgets)
-   ========================= */
-
+/* Weather Stage styles included */
 .weather-stage{
   position: relative;
   width: 100%;
@@ -119,7 +99,6 @@ a:hover { text-decoration: underline; }
 .panel-alerts{ overflow:auto; }
 .panel-storms{ overflow:hidden; display:flex; }
 
-/* KPIs */
 .kpis{
   display:flex; gap:16px; padding:12px; border-radius:14px; background: var(--glass);
   border:1px solid rgba(255,255,255,.08);
@@ -130,7 +109,6 @@ a:hover { text-decoration: underline; }
 .kpi-label{ color:var(--muted); font-size:12px; }
 .kpi-sub{ color:var(--muted); font-size:11px; opacity:.9; }
 
-/* Radar frame */
 .radar-frame{
   flex:1 1 auto; width:100%; border:0; border-radius: 12px;
   box-shadow: inset 0 0 0 1px rgba(255,255,255,.06), 0 14px 40px rgba(0,0,0,.35);
@@ -138,18 +116,15 @@ a:hover { text-decoration: underline; }
   background:#000;
 }
 
-/* Hourly cards */
 .row{ display:grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap:14px; }
 .card{ background: var(--glass); border:1px solid rgba(255,255,255,.08); border-radius:14px; padding:14px; }
 .card h4{ margin:0 0 8px 0; font-size:14px; color:var(--text); }
 .axis{ display:flex; justify-content:space-between; color:var(--muted); font-size:12px; }
 
-/* Sparklines */
 .spark-inline{ width:100%; height:42px; color: var(--accent); filter: drop-shadow(0 0 8px rgba(255,48,109,.28)); }
 .spark-inline circle{ transition: transform .2s ease; }
 .card:hover .spark-inline circle{ transform: scale(1.15); }
 
-/* Alerts */
 .alerts{ list-style:none; margin:0; padding:0; display:grid; gap:12px; }
 .alert{ display:flex; gap:12px; padding:12px; border-radius:12px; background: rgba(255,255,255,.03); border:1px solid rgba(255,255,255,.08); }
 .alert .pill{
@@ -166,7 +141,6 @@ a:hover { text-decoration: underline; }
 
 .empty{ margin:auto; color:var(--muted); font-size:14px; }
 
-/* Storms ticker */
 .ticker{ display:flex; gap:12px; align-items:stretch; animation: scrollX 36s linear infinite; }
 .storm-card{
   min-width: 230px; display:flex; flex-direction:column; gap:6px;
@@ -192,7 +166,6 @@ a:hover { text-decoration: underline; }
 }
 @keyframes fadeIn{ from{ opacity:0; transform: translateY(6px); } to{ opacity:1; transform: translateY(0); } }
 
-/* Entrance micro-animations */
 [data-animate="rise"]{ animation: rise .35s ease both; }
 [data-animate="float"]{ animation: float .6s ease both; }
 [data-animate="pop"]{ animation: pop .28s ease both; }

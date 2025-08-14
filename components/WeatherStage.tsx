@@ -1,8 +1,7 @@
-'use client';
 import React, { useMemo, useState } from "react";
 
 export type Point = { lat: number; lon: number; name?: string };
-export type Hour = { t: number; temp: number; wind: number; rain: number };
+export type Hour  = { t: number; temp: number; wind: number; rain: number };
 export type Alert = { title: string; desc?: string; severity?: "advisory"|"watch"|"warning"|string; source?: string };
 export type Storm = { name: string; category?: string; movement?: string; pressure?: number; winds?: number };
 
@@ -47,7 +46,12 @@ export default function WeatherStage({
   hourly,
   alerts=[],
   storms=[]
-}:{ point:Point; hourly:ReadonlyArray<Hour>; alerts?:ReadonlyArray<Alert>; storms?:ReadonlyArray<Storm> }){
+}:{
+  point:Point;
+  hourly: ReadonlyArray<Hour>;
+  alerts?: ReadonlyArray<Alert>;
+  storms?: ReadonlyArray<Storm>;
+}){
   const [tab, setTab] = useState<"radar"|"hourly"|"alerts"|"storms">("radar");
   const zoom = 6;
   const iframeSrc = useMemo(()=>{

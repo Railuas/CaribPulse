@@ -1,4 +1,4 @@
-import type { Point, Hour, Alert, Storm } from '../components/WeatherStage';
+import type { Point, Hour, Alert, Storm } from "../components/WeatherStage";
 
 export const samplePoint: Point = { lat: 17.3, lon: -62.73, name: "St. Kitts & Nevis" };
 
@@ -16,7 +16,7 @@ export const sampleHourly: ReadonlyArray<Hour> = Array.from({length:24}, (_,i)=>
 
 export const sampleAlerts: ReadonlyArray<Alert> = [
   { title: "Heat Advisory for coastal plain", desc: "High temperatures and humidity could cause heat stress during the afternoon hours.", severity: "advisory", source: "Met Service" },
-  { title: "Strong winds near squalls", desc: "Gusts 35–45 km/h possible; small craft should exercise caution.", severity: "watch", source: "Marine Advisory" },
+  { title: "Strong winds near squalls", desc: "Gusts 35–45 km/h possible in showers; small craft should exercise caution.", severity: "watch", source: "Marine Advisory" },
 ];
 
 export const sampleStorms: ReadonlyArray<Storm> = [
