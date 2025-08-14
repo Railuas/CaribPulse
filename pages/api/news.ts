@@ -2,7 +2,13 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 
 export const config = { api: { externalResolver: true } };
 
-const FEEDS = [
+type Item = { title: string; link: string; published: number; image?: string; source?: string };
+type Feed = { source: string; url: string; _items?: Item[] };
+type FeedResultOk = { ok: true; source: string; count: number };
+type FeedResultErr = { ok: false; source: string; error: string };
+type FeedResult = FeedResultOk | FeedResultErr;
+
+const FEEDS: Feed[] = [
   { source: 'Loop News Caribbean', url: 'https://www.loopnews.com/feeds/rss/caribbean' },
   { source: 'Nation News (Barbados)', url: 'https://www.nationnews.com/feed/' },
   { source: 'Jamaica Gleaner', url: 'https://jamaica-gleaner.com/rss/news' },
@@ -59,7 +65,7 @@ async function fetchOg(link: string){
 }
 
 async function parseFeed(xml: string){
-  const items: any[] = [];
+  const items: Item[] = [];
   const parts = xml.split(/<item[\s>]/i).slice(1);
   for (const part of parts){
     const title = pickCdata('title', part) || pick('title', part);
@@ -77,27 +83,27 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const q = (req.query.q as string | undefined)?.toLowerCase().trim();
   const debug = 'debug' in req.query;
   try{
-    const results = [];
+    const results: FeedResult[] = [];
     for (const f of FEEDS){
       try{
         const xml = await fetchText(f.url);
         const items = await parseFeed(xml);
         const withSource = items.map(i => ({ ...i, source: f.source }));
         results.push({ ok:true, source:f.source, count: withSource.length });
-        (f as any)._items = withSource;
+        f._items = withSource;
       }catch(e:any){
         results.push({ ok:false, source:f.source, error: e?.message || 'failed' });
       }
     }
     if (debug){
-      return res.status(200).json({ debug: results });
+      return res.status(200).json({ ok:true, debug: results });
     }
-    let merged: any[] = [];
+    let merged: Item[] = [];
     for (const f of FEEDS){
-      if ((f as any)._items) merged = merged.concat((f as any)._items);
+      if (f._items) merged = merged.concat(f._items);
     }
     if (q) merged = merged.filter(it => it.title.toLowerCase().includes(q));
-    const uniq = new Map<string, any>();
+    const uniq = new Map<string, Item>();
     for (const it of merged) if (!uniq.has(it.link)) uniq.set(it.link, it);
     const items = Array.from(uniq.values()).sort((a,b)=> b.published - a.published).slice(0, 24);
     res.setHeader('Cache-Control', 's-maxage=900, stale-while-revalidate=600');
