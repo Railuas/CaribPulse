@@ -1,3 +1,4 @@
-# CaribPulse — Netlify Ready with Plugin
+# CaribPulse — Netlify Ready at Repo Root
 
-Includes @netlify/plugin-nextjs installed in dependencies.
+Upload these files to a new GitHub repo and import to Netlify.
+Build: `npm run build` · Publish: `.next` · Node: 18+
