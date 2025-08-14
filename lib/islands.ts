@@ -1,33 +1,17 @@
-export type Island = { name: string; lat: number; lon: number; code?: string };
+export type Island = {
+  slug: string;
+  name: string;
+  country?: string;
+  lat: number;
+  lon: number;
+  icao?: string; // default airport for schedules
+};
 
 export const ISLANDS: ReadonlyArray<Island> = [
-  { name:'Anguilla', lat:18.2206, lon:-63.0686 },
-  { name:'Antigua & Barbuda', lat:17.0608, lon:-61.7964 },
-  { name:'Aruba', lat:12.5211, lon:-69.9683 },
-  { name:'Bahamas', lat:25.0343, lon:-77.3963 },
-  { name:'Barbados', lat:13.1939, lon:-59.5432 },
-  { name:'Belize', lat:17.1899, lon:-88.4976 },
-  { name:'Bermuda', lat:32.3078, lon:-64.7505 },
-  { name:'BVI', lat:18.4207, lon:-64.6400 },
-  { name:'Cayman Islands', lat:19.3133, lon:-81.2546 },
-  { name:'Cuba', lat:21.5218, lon:-77.7812 },
-  { name:'Dominica', lat:15.4150, lon:-61.3710 },
-  { name:'Dominican Republic', lat:18.7357, lon:-70.1627 },
-  { name:'Grenada', lat:12.1165, lon:-61.6790 },
-  { name:'Guadeloupe', lat:16.2650, lon:-61.5510 },
-  { name:'Guyana (Caribbean)', lat:6.804, lon:-58.154 },
-  { name:'Haiti', lat:18.9712, lon:-72.2852 },
-  { name:'Jamaica', lat:18.0179, lon:-76.8099 },
-  { name:'Martinique', lat:14.6415, lon:-61.0242 },
-  { name:'Montserrat', lat:16.7425, lon:-62.1874 },
-  { name:'Puerto Rico', lat:18.2208, lon:-66.5901 },
-  { name:'Saint Kitts & Nevis', lat:17.3578, lon:-62.7830 },
-  { name:'Saint Lucia', lat:13.9094, lon:-60.9789 },
-  { name:'Saint Martin', lat:18.0708, lon:-63.0501 },
-  { name:'Sint Maarten', lat:18.0425, lon:-63.0548 },
-  { name:'Saint Vincent & the Grenadines', lat:13.2528, lon:-61.1971 },
-  { name:'Suriname (Caribbean)', lat:5.8520, lon:-55.2038 },
-  { name:'Trinidad & Tobago', lat:10.6918, lon:-61.2225 },
-  { name:'Turks & Caicos', lat:21.6940, lon:-71.7979 },
-  { name:'US Virgin Islands', lat:18.3358, lon:-64.8963 },
+  { slug: 'st-kitts', name: 'St. Kitts & Nevis', country: 'Saint Kitts and Nevis', lat: 17.3, lon: -62.73, icao: 'TKPK' },
+  { slug: 'dominica', name: 'Dominica', country: 'Dominica', lat: 15.54, lon: -61.29, icao: 'TDPD' },
+  { slug: 'barbados', name: 'Barbados', country: 'Barbados', lat: 13.10, lon: -59.62, icao: 'TBPB' },
+  { slug: 'trinidad', name: 'Trinidad & Tobago', country: 'Trinidad and Tobago', lat: 10.65, lon: -61.52, icao: 'TTPP' },
+  { slug: 'jamaica', name: 'Jamaica', country: 'Jamaica', lat: 18.00, lon: -77.30, icao: 'MKJP' },
+  { slug: 'puerto-rico', name: 'Puerto Rico', country: 'United States', lat: 18.22, lon: -66.59, icao: 'TJSJ' },
 ];

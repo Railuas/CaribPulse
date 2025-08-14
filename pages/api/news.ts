@@ -44,17 +44,21 @@ function parseItems(xml: string) {
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  const q = (req.query.q as string | undefined)?.toLowerCase().trim();
   try {
     const results = await Promise.allSettled(
       FEEDS.map(f =>
         fetchText(f.url).then(txt => ({ source: f.source, items: parseItems(txt) })),
       ),
     );
-    const merged = results.flatMap(r =>
+    let merged = results.flatMap(r =>
       r.status === 'fulfilled'
         ? r.value.items.map(it => ({ ...it, source: (r as any).value.source }))
         : [],
     );
+    if (q) {
+      merged = merged.filter(it => it.title.toLowerCase().includes(q));
+    }
     const uniq = new Map<string, { title: string; link: string; published: number; source: string }>();
     for (const it of merged) if (!uniq.has(it.link)) uniq.set(it.link, it);
     const items = Array.from(uniq.values())

@@ -1,67 +1,32 @@
-import Head from 'next/head';
-import { useMemo, useState } from 'react';
-import WeatherStage, { type Point, type Hour, type Alert, type Storm } from '../components/WeatherStage';
-import { ISLANDS, type Island } from '../lib/islands';
-import { sampleHourly, sampleAlerts, sampleStorms } from '../sample/fixtures';
+import dynamic from 'next/dynamic';
+import IslandGrid from '../components/IslandGrid';
+import NewsList from '../components/NewsList';
 
-async function fetchHourly(p: Point): Promise<ReadonlyArray<Hour>>{
-  const url = `https://api.open-meteo.com/v1/forecast?latitude=${p.lat}&longitude=${p.lon}&hourly=temperature_2m,wind_speed_10m,precipitation`;
-  try{
-    const r = await fetch(url, { cache: 'no-store' });
-    const j = await r.json();
-    const hours: ReadonlyArray<Hour> = (j?.hourly?.time ?? []).slice(0,24).map((t:string, i:number)=> ({
-      t: Date.parse(t),
-      temp: Number(j.hourly.temperature_2m?.[i] ?? 0),
-      wind: Number(j.hourly.wind_speed_10m?.[i] ?? 0),
-      rain: Number(j.hourly.precipitation?.[i] ?? 0),
-    }));
-    return hours;
-  }catch{
-    return sampleHourly;
-  }
-}
+const WeatherStage = dynamic(() => import('../components/WeatherStage'), { ssr: false });
 
-export default function Home(){
-  const [sel, setSel] = useState<Island>(ISLANDS.find(i=>i.name.includes('Kitts')) || ISLANDS[0]);
-  const point: Point = useMemo(()=>({ lat: sel.lat, lon: sel.lon, name: sel.name }), [sel]);
-  const [hourly, setHourly] = useState<ReadonlyArray<Hour>>(sampleHourly);
-  const alerts: ReadonlyArray<Alert> = sampleAlerts;
-  const storms: ReadonlyArray<Storm> = sampleStorms;
-
+export default function Home() {
   return (
-    <>
-      <Head><title>CaribePulse · News & Weather</title></Head>
-      <div className="container">
-        <div className="header">
-          <div className="brand"><span className="dot" /><strong>CaribePulse</strong><span className="muted">News · Weather · Islands</span></div>
-          <nav className="nav">
-            <a href="/">Home</a>
-            <a href="/hurricanes">Hurricanes</a>
-            <a href="https://zoom.earth" target="_blank" rel="noreferrer">Zoom Earth</a>
-          </nav>
+    <div className="grid" style={{ display:'grid', gridTemplateColumns:'320px 1fr', gap:16 }}>
+      <aside className="card" style={{ height:'fit-content' }}>
+        <h4 style={{ marginTop:0 }}>Islands</h4>
+        <IslandGrid />
+      </aside>
+      <section>
+        <WeatherStage
+          point={{ lat: 17.3, lon: -62.73, name: 'St. Kitts & Nevis' }}
+          hourly={[
+            { t: Date.now(), temp: 30, wind: 10, rain: 0.5 },
+            { t: Date.now()+3600_000, temp: 30, wind: 12, rain: 0.1 },
+            { t: Date.now()+2*3600_000, temp: 29, wind: 11, rain: 0.0 },
+          ]}
+          alerts={[]}
+          storms={[]}
+        />
+        <div className="card" style={{ marginTop: 16 }}>
+          <h4 style={{ marginTop: 0 }}>Latest News</h4>
+          <NewsList />
         </div>
-
-        <div className="layout">
-          <aside className="card">
-            <h4 style={{marginTop:0}}>Caribbean</h4>
-            <div className="island-grid">
-              {ISLANDS.map(is=> (
-                <button key={is.name} className="island" onClick={async ()=>{
-                  setSel(is);
-                  setHourly(await fetchHourly({ lat: is.lat, lon: is.lon, name: is.name }));
-                }}>
-                  <span className="name">{is.name}</span>
-                  <span className="sub">open</span>
-                </button>
-              ))}
-            </div>
-          </aside>
-
-          <main className="stage-wrap">
-            <WeatherStage point={point} hourly={hourly} alerts={alerts} storms={storms} />
-          </main>
-        </div>
-      </div>
-    </>
+      </section>
+    </div>
   );
 }
