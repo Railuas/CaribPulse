@@ -24,7 +24,11 @@ export default function NewsList({ q }: { q?: string }) {
   }, [q]);
 
   if (loading && items.length === 0) return <div className="muted small">Fetching headlines…</div>;
-  if (error && items.length === 0) return <div className="muted small">News unavailable right now.</div>;
+  if (error && items.length === 0) return (
+    <div className="muted small">
+      News unavailable right now. <a href="/api/news?debug=1" target="_blank" rel="noreferrer">Debug feed status ↗</a>
+    </div>
+  );
 
   return (
     <div className="news-grid">
