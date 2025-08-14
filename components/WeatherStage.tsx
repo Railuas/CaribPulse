@@ -6,7 +6,7 @@ export type Hour = { t: number; temp: number; wind: number; rain: number };
 export type Alert = { title: string; desc?: string; severity?: "advisory"|"watch"|"warning"|string; source?: string };
 export type Storm = { name: string; category?: string; movement?: string; pressure?: number; winds?: number };
 
-function SparkInline({data, h=42, strokeWidth=2, ariaLabel}:{data: ReadonlyArray<number>; h?:number; strokeWidth?:number; ariaLabel?:string}){
+function SparkInline({data, h=42, strokeWidth=2, ariaLabel}:{data:ReadonlyArray<number>; h?:number; strokeWidth?:number; ariaLabel?:string}){
   const w = Math.max(120, data.length * 16);
   const min = Math.min(...data);
   const max = Math.max(...data);
@@ -47,7 +47,7 @@ export default function WeatherStage({
   hourly,
   alerts=[],
   storms=[]
-}:{ point:Point; hourly: ReadonlyArray<Hour>; alerts?: ReadonlyArray<Alert>; storms?: ReadonlyArray<Storm> }){
+}:{ point:Point; hourly:ReadonlyArray<Hour>; alerts?:ReadonlyArray<Alert>; storms?:ReadonlyArray<Storm> }){
   const [tab, setTab] = useState<"radar"|"hourly"|"alerts"|"storms">("radar");
   const zoom = 6;
   const iframeSrc = useMemo(()=>{
@@ -60,9 +60,9 @@ export default function WeatherStage({
     return `https://embed.windy.com/embed2.html?${p}`;
   }, [point?.lat, point?.lon]);
 
-  const temps = (hourly ?? []).map(h=>h.temp);
-  const winds = (hourly ?? []).map(h=>h.wind);
-  const rains = (hourly ?? []).map(h=>h.rain);
+  const temps = hourly?.map(h=>h.temp) ?? [];
+  const winds = hourly?.map(h=>h.wind) ?? [];
+  const rains = hourly?.map(h=>h.rain) ?? [];
   const nowTemp = hourly?.[0]?.temp ?? 0;
   const nowWind = hourly?.[0]?.wind ?? 0;
   const nowRain = hourly?.[0]?.rain ?? 0;
@@ -108,11 +108,11 @@ export default function WeatherStage({
 
         {tab === "alerts" && (
           <div className="panel panel-alerts" data-animate="fade">
-            {(alerts?.length ?? 0) === 0 && <div className="empty">No active advisories. 🌤️</div>}
+            {alerts.length === 0 && <div className="empty">No active advisories. 🌤️</div>}
             <ul className="alerts">
-              {alerts?.map((a, i)=>(
+              {alerts.map((a, i)=>(
                 <li key={i} className={`alert ${a.severity ?? "advisory"}`} data-animate="rise">
-                  <div className="pill">{String(a.severity ?? "advisory").toUpperCase()}</div>
+                  <div className="pill">{(a.severity ?? "advisory").toUpperCase()}</div>
                   <div className="alert-body">
                     <h5>{a.title}</h5>
                     {a.desc && <p>{a.desc}</p>}
@@ -126,9 +126,9 @@ export default function WeatherStage({
 
         {tab === "storms" && (
           <div className="panel panel-storms" data-animate="fade">
-            {(storms?.length ?? 0) === 0 && <div className="empty">No active named storms in the basin.</div>}
+            {storms.length === 0 && <div className="empty">No active named storms in the basin.</div>}
             <div className="ticker" role="list">
-              {storms?.map((s, i)=>(
+              {storms.map((s, i)=>(
                 <div role="listitem" key={i} className="storm-card" data-animate="pop">
                   <div className="spin-dot" aria-hidden />
                   <div className="storm-name">{s.name}</div>
@@ -140,7 +140,7 @@ export default function WeatherStage({
                   </div>
                 </div>
               ))}
-              {storms?.map((s, i)=>(
+              {storms.map((s, i)=>(
                 <div role="listitem" key={`dup-${i}`} className="storm-card" aria-hidden>
                   <div className="spin-dot" />
                   <div className="storm-name">{s.name}</div>

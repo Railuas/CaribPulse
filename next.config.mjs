@@ -1,7 +1,7 @@
-/** Disable the app/ directory so Next uses the pages router only */
+/** @type {import('next').NextConfig} */
 const nextConfig = {
-  experimental: { appDir: false },
   reactStrictMode: false,
+  swcMinify: true,
 };
 
 export default nextConfig;
