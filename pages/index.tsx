@@ -1,78 +1,96 @@
-import Head from 'next/head';
-import { useState } from 'react';
+
+import { useEffect, useMemo, useState } from 'react';
 import WeatherStage from '../components/WeatherStage';
-import { samplePoint, sampleHourly, sampleAlerts, sampleStorms } from '../sample/fixtures';
+import { ISLANDS, type Island } from '../lib/islands';
+import type { Hour, Alert, Storm } from '../sample/fixtures';
+import { sampleHourly, sampleAlerts, sampleStorms } from '../sample/fixtures';
 
-type Island = { name:string, lat:number, lon:number };
-
-const ISLANDS: Island[] = [
-  { name:'Anguilla', lat:18.22, lon:-63.06 },
-  { name:'Antigua & Barbuda', lat:17.08, lon:-61.82 },
-  { name:'Aruba', lat:12.52, lon:-69.98 },
-  { name:'Bahamas', lat:25.03, lon:-77.40 },
-  { name:'Barbados', lat:13.10, lon:-59.62 },
-  { name:'Belize', lat:17.50, lon:-88.20 },
-  { name:'Cayman Islands', lat:19.31, lon:-81.25 },
-  { name:'Cuba', lat:21.52, lon:-77.78 },
-  { name:'Dominica', lat:15.30, lon:-61.39 },
-  { name:'Dominican Republic', lat:18.74, lon:-70.16 },
-  { name:'Grenada', lat:12.05, lon:-61.75 },
-  { name:'Guadeloupe', lat:16.23, lon:-61.56 },
-  { name:'Guyana (Caribbean)', lat:6.80, lon:-58.16 },
-  { name:'Haiti', lat:18.97, lon:-72.29 },
-  { name:'Jamaica', lat:18.11, lon:-77.30 },
-  { name:'Martinique', lat:14.67, lon:-61.02 },
-  { name:'Montserrat', lat:16.72, lon:-62.19 },
-  { name:'Puerto Rico', lat:18.22, lon:-66.59 },
-  { name:'St. Kitts & Nevis', lat:17.30, lon:-62.73 },
-  { name:'St. Lucia', lat:13.91, lon:-60.97 },
-  { name:'Sint Maarten (Dutch)', lat:18.04, lon:-63.06 },
-  { name:'Turks & Caicos', lat:21.80, lon:-71.80 },
-];
+type WeatherResp = {
+  current: { temperature_2m:number; wind_speed_10m:number; relative_humidity_2m:number };
+  hourly: { time:string[]; temperature_2m:number[]; wind_speed_10m:number[]; precipitation:number[] };
+};
 
 export default function Home(){
-  const [selected, setSelected] = useState<ISLANDS[number]>(ISLANDS.find(x=>x.name==='St. Kitts & Nevis') || ISLANDS[0]);
+  const [selected, setSelected] = useState<Island>(ISLANDS.find(i=>i.code==='KN') || ISLANDS[0]);
+  const [wx, setWx] = useState<WeatherResp|null>(null);
+
+  useEffect(()=>{
+    const url = new URL('https://api.open-meteo.com/v1/forecast');
+    url.searchParams.set('latitude', String(selected.lat));
+    url.searchParams.set('longitude', String(selected.lon));
+    url.searchParams.set('hourly','temperature_2m,wind_speed_10m,precipitation');
+    url.searchParams.set('current','temperature_2m,wind_speed_10m,relative_humidity_2m');
+    url.searchParams.set('timezone','auto');
+    fetch(String(url))
+      .then(r=>r.json())
+      .then(setWx)
+      .catch(()=>setWx(null));
+  }, [selected.lat, selected.lon]);
+
+  const hourly: ReadonlyArray<Hour> = useMemo(()=>{
+    if(!wx) return sampleHourly;
+    const h: Hour[] = [];
+    for(let i=0; i<Math.min(24, wx.hourly.time.length); i++){
+      h.push({ t: Date.parse(wx.hourly.time[i]), temp: wx.hourly.temperature_2m[i], wind: wx.hourly.wind_speed_10m[i], rain: wx.hourly.precipitation[i] });
+    }
+    return h;
+  }, [wx]);
+
+  const kNow = {
+    temp: wx?.current.temperature_2m ?? hourly[0]?.temp ?? 0,
+    wind: wx?.current.wind_speed_10m ?? hourly[0]?.wind ?? 0,
+    hum: wx?.current.relative_humidity_2m ?? 0,
+  };
+
   return (
-    <>
-      <Head>
-        <title>CaribePulse · News & Weather</title>
-      </Head>
-      <header className="header">
-        <div className="brand">
-          <strong>CaribePulse</strong>
-          <span className="muted">News · Weather · Islands</span>
-        </div>
+    <div>
+      <header className="site-header">
+        <div className="brand">🌊 CaribePulse</div>
         <nav className="nav">
-          <a className="btn" href="/schedules">Schedules</a>
-          <a className="btn" href="/hurricanes">Hurricanes</a>
+          <a href="/">News</a>
+          <a href="/schedules">Schedules</a>
+          <a href="/hurricanes">Hurricanes</a>
         </nav>
       </header>
 
       <main className="container">
-        <section className="section">
-          <h1>Caribbean News & Weather</h1>
-          <h2>Tap an island to load weather and headlines. Open its page for radar & alerts.</h2>
-        </section>
+        <div className="grid-home">
+          <aside>
+            <h2 className="muted">Tap an island</h2>
+            <div className="island-grid">
+              {ISLANDS.map((i)=>(
+                <button key={i.code} className={'island-btn ' + (selected.code===i.code?'active':'')} onClick={()=>setSelected(i)}>
+                  <div className="font-semibold">{i.name}</div>
+                </button>
+              ))}
+            </div>
 
-        <section className="section">
-          <div className="grid">
-            {ISLANDS.map((i)=>(
-              <button key={i.name} className={selected.name===i.name? 'tile active':'tile'} onClick={()=>setSelected(i)}>{i.name}</button>
-            ))}
-          </div>
-        </section>
+            <div className="kpi-row">
+              <div className="kpi-tile"><div className="label">Now</div><div className="value">{Math.round(kNow.temp)}°</div></div>
+              <div className="kpi-tile"><div className="label">Wind</div><div className="value">{Math.round(kNow.wind)} km/h</div></div>
+              <div className="kpi-tile"><div className="label">Humidity</div><div className="value">{Math.round(kNow.hum)}%</div></div>
+            </div>
+          </aside>
 
-        <section className="section">
-          <div className="stage-wrap">
+          <section>
             <WeatherStage
-              point={{ lat:selected.lat, lon:selected.lon, name:selected.name }}
-              hourly={sampleHourly}
+              point={{ lat:selected.lat, lon: selected.lon, name: selected.name }}
+              hourly={hourly}
               alerts={sampleAlerts}
               storms={sampleStorms}
             />
-          </div>
+          </section>
+        </div>
+
+        <section style={{marginTop:20}}>
+          <h3 className="muted">Latest Headlines — {selected.name}</h3>
+          <ul className="list" style={{marginTop:10}}>
+            <li className="card">News feed coming next — hook your RSS or API here.</li>
+          </ul>
         </section>
+
+        <div className="footer">© {new Date().getFullYear()} CaribePulse</div>
       </main>
-    </>
+    </div>
   );
 }

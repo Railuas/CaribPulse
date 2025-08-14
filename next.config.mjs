@@ -1,7 +1,4 @@
-/** @type {import('next').NextConfig} */
-const nextConfig = {
-  reactStrictMode: false,
-  swcMinify: true,
-};
 
+/** @type {import('next').NextConfig} */
+const nextConfig = {};
 export default nextConfig;
