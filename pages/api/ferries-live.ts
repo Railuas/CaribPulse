@@ -1,49 +1,47 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 
-/** Source options:
- * - sknvibes: https://www.sknvibes.com/travel/new_ferry.cfm (fallback/legacy)
- * - naspa:    https://www.naspakn.com/{weekdayschedule|fridayschedule|saturdayschedule|sundayschedule}
- * - taxi:     https://www.naspakn.com/watertaxischedule
- */
-type Dir = 'nevis-to-st-kitts' | 'st-kitts-to-nevis';
-type Row = { time: string; vessel: string };
-type Payload = { day: string; source: string; type: 'ferry'|'taxi'; routes: Record<Dir, Row[]>; fetchedAt: number };
+type Row = { time: string; vessel?: string; note?: string };
+type Dir = 'a-to-b' | 'b-to-a'; // generic directions; label by island
+type Sched = { island: string; route: string; source: string; day?: string; routes: Record<Dir, Row[]>; fetchedAt: number };
 
 function norm(s: string){ return s.replace(/\s+/g, ' ').trim(); }
 function toText(html: string){
-  return norm(html.replace(/<script[\s\S]*?<\/script>/gi, ' ').replace(/<style[\s\S]*?<\/style>/gi, ' ').replace(/<[^>]+>/g, ' '));
+  return norm(html
+    .replace(/<script[\s\S]*?<\/script>/gi, ' ')
+    .replace(/<style[\s\S]*?<\/style>/gi, ' ')
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/&nbsp;/g, ' '));
 }
-const TIME_RE = /\b(\d{1,2}:\d{2})\s?(AM|PM)\b/i;
+const TIME_RE = /\b(\d{1,2}:\d{2})\s?(AM|PM)\b/gi;
 
-async function fetchText(url: string, timeoutMs = 10000){
+async function fetchText(url: string, timeoutMs = 12000){
   const ctrl = new AbortController();
-  const t = setTimeout(() => ctrl.abort(), timeoutMs);
+  const t = setTimeout(()=>ctrl.abort(), timeoutMs);
   try{
-    const r = await fetch(url, { signal: ctrl.signal, cache: 'no-store' });
-    if(!r.ok) throw new Error('bad status ' + r.status);
+    const r = await fetch(url, { signal: ctrl.signal, cache: 'no-store', headers: { 'user-agent': 'CaribePulseBot/1.0 (+caribepulse.netlify.app)' } });
+    if (!r.ok) throw new Error('bad status ' + r.status);
     return await r.text();
-  } finally { clearTimeout(t); }
+  } finally{ clearTimeout(t); }
 }
 
+// ------- SKN (NASPA & SKNVibes) -------
 function sliceBetween(text: string, startKey: string, endKey?: string){
   const s = text.toLowerCase().indexOf(startKey.toLowerCase());
   if (s === -1) return '';
   const e = endKey ? text.toLowerCase().indexOf(endKey.toLowerCase(), s + startKey.length) : -1;
   return e !== -1 ? text.slice(s, e) : text.slice(s);
 }
-
 function parsePairs(text: string): Row[] {
   const tokens = text.split(/\s{2,}|\n|\r/).map(norm).filter(Boolean);
   const out: Row[] = [];
   for (let i=0; i<tokens.length; i++){
     const t = tokens[i];
-    const m = t.match(TIME_RE);
+    const m = t.match(/\b\d{1,2}:\d{2}\s?(AM|PM)\b/i);
     if (m){
-      // the next non-time token is likely the vessel name
       let j = i+1;
-      while(j < tokens.length && TIME_RE.test(tokens[j])) j++;
+      while(j < tokens.length && /\b\d{1,2}:\d{2}\s?(AM|PM)\b/i.test(tokens[j])) j++;
       const vessel = tokens[j] || '';
-      if (vessel && !TIME_RE.test(vessel)){
+      if (vessel && !/\b\d{1,2}:\d{2}\s?(AM|PM)\b/i.test(vessel)){
         out.push({ time: m[0].toUpperCase(), vessel });
         i = j;
       }
@@ -51,71 +49,116 @@ function parsePairs(text: string): Row[] {
   }
   return out;
 }
-
-// SKNVibes fallback (single page, fewer details)
-async function scrapeSknVibes(): Promise<Record<Dir, Row[]>> {
-  const html = await fetchText('https://www.sknvibes.com/travel/new_ferry.cfm');
-  const text = toText(html);
+function naspaSlugFor(day: string){
+  const d = day.toLowerCase();
+  if (d.startsWith('fri')) return 'fridayschedule';
+  if (d.startsWith('sat')) return 'saturdayschedule';
+  if (d.startsWith('sun')) return 'sundayschedule';
+  return 'weekdayschedule';
+}
+async function sknNaspa(day: string, taxi=false){
+  const url = taxi ? 'https://www.naspakn.com/watertaxischedule' : `https://www.naspakn.com/${naspaSlugFor(day)}`;
+  const text = toText(await fetchText(url));
+  const a = sliceBetween(text, 'nevis to st. kitts', 'st. kitts to nevis') || sliceBetween(text, 'nevis to st. kitts');
+  const b = sliceBetween(text, 'st. kitts to nevis');
+  return {
+    island: 'Saint Kitts & Nevis',
+    route: taxi ? 'Oualie Water Taxi' : 'Charlestown Ferry',
+    source: 'naspa',
+    day,
+    routes: { 'a-to-b': parsePairs(a), 'b-to-a': parsePairs(b) },
+    fetchedAt: Date.now(),
+  } as Sched;
+}
+async function sknVibes(){
+  const text = toText(await fetchText('https://www.sknvibes.com/travel/new_ferry.cfm'));
   const a = sliceBetween(text, 'departs st. kitts', 'departs nevis');
   const b = sliceBetween(text, 'departs nevis');
-  const fromStKitts = parsePairs(a);
-  const fromNevis = parsePairs(b);
   return {
-    'st-kitts-to-nevis': fromStKitts,
-    'nevis-to-st-kitts': fromNevis,
-  };
+    island: 'Saint Kitts & Nevis',
+    route: 'Charlestown Ferry',
+    source: 'sknvibes',
+    routes: { 'a-to-b': parsePairs(a), 'b-to-a': parsePairs(b) },
+    fetchedAt: Date.now(),
+  } as Sched;
 }
 
-// NASPA ferry schedule (weekday/fri/sat/sun)
-function naspaSlugFor(day: string): string {
-  const d = day.toLowerCase();
-  if (d === 'fri' || d === 'friday') return 'fridayschedule';
-  if (d === 'sat' || d === 'saturday') return 'saturdayschedule';
-  if (d === 'sun' || d === 'sunday') return 'sundayschedule';
-  return 'weekdayschedule'; // Mon-Thu
+// ------- Trinidad & Tobago (TTIT) -------
+function parseTtit(text: string){
+  // Try to find POS -> Scarborough and reverse with times; TTIT often posts tables and bulletins.
+  const posToScar = sliceBetween(text, 'port of spain to scarborough', 'scarborough to port of spain') || sliceBetween(text, 'port of spain → scarborough', 'scarborough → port of spain');
+  const scarToPos = sliceBetween(text, 'scarborough to port of spain') || sliceBetween(text, 'scarborough → port of spain');
+  function timesOnly(chunk: string){
+    return Array.from(chunk.matchAll(TIME_RE)).map(m => ({ time: m[0].toUpperCase() }));
+  }
+  return { a: timesOnly(posToScar), b: timesOnly(scarToPos) };
 }
-
-async function scrapeNaspa(day: string): Promise<Record<Dir, Row[]>> {
-  const slug = naspaSlugFor(day);
-  const html = await fetchText(`https://www.naspakn.com/${slug}`);
-  const text = toText(html);
-  const nevisToSt = sliceBetween(text, 'nevis to st.kitts', 'st. kitts to nevis') || sliceBetween(text, 'nevis to st. kitts', 'st. kitts to nevis');
-  const stToNevis = sliceBetween(text, 'st. kitts to nevis');
+async function ttit(){
+  const text = toText(await fetchText('https://www.ttitferry.com/schedule/'));
+  const { a, b } = parseTtit(text);
   return {
-    'nevis-to-st-kitts': parsePairs(nevisToSt),
-    'st-kitts-to-nevis': parsePairs(stToNevis),
-  };
+    island: 'Trinidad & Tobago',
+    route: 'Port of Spain ↔ Scarborough',
+    source: 'ttit',
+    routes: { 'a-to-b': a, 'b-to-a': b },
+    fetchedAt: Date.now(),
+  } as Sched;
 }
 
-// NASPA water taxi schedule
-async function scrapeNaspaTaxi(): Promise<Record<Dir, Row[]>> {
-  const html = await fetchText('https://www.naspakn.com/watertaxischedule');
-  const text = toText(html);
-  const nevisToSt = sliceBetween(text, 'nevis to st. kitts', 'st. kitts to nevis');
-  const stToNevis = sliceBetween(text, 'st. kitts to nevis');
+// ------- Antigua ↔ Barbuda (Barbuda Express) -------
+function parseBarbudaExpress(text: string){
+  // The schedule page has a clear table with days and times; we emit both directions with the first time per row.
+  const lines = text.split(/\n|\r|\s{2,}/).map(norm).filter(Boolean);
+  const days = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
+  const a: Row[] = []; const b: Row[] = [];
+  for (let i=0;i<lines.length;i++){
+    const L = lines[i];
+    const d = days.find(dd => L.toLowerCase().startsWith(dd.toLowerCase()));
+    if (d){
+      // Expect pattern: Day, Depart Antigua, Depart Barbuda
+      // Find next two time tokens
+      let times: string[] = [];
+      for (let j=i+1;j<Math.min(i+8, lines.length);j++){
+        const m = lines[j].match(/\b\d{1,2}:\d{2}\s?(AM|PM)\b/i);
+        if (m){ times.push(m[0].toUpperCase()); if (times.length>=2) break; }
+      }
+      if (times[0]) a.push({ time: times[0] });
+      if (times[1]) b.push({ time: times[1] });
+    }
+  }
+  return { a, b };
+}
+async function barbudaExpress(){
+  const text = toText(await fetchText('https://www.barbudaexpress.com/schedule.html'));
+  const { a, b } = parseBarbudaExpress(text);
   return {
-    'nevis-to-st-kitts': parsePairs(nevisToSt),
-    'st-kitts-to-nevis': parsePairs(stToNevis),
-  };
+    island: 'Antigua & Barbuda',
+    route: 'St. John’s ↔ Codrington',
+    source: 'barbudaexpress',
+    routes: { 'a-to-b': a, 'b-to-a': b },
+    fetchedAt: Date.now(),
+  } as Sched;
 }
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse<Payload | { error: string }>) {
-  const type = (req.query.type as string || 'ferry').toLowerCase() === 'taxi' ? 'taxi' : 'ferry';
-  const day = (req.query.day as string || new Date().toLocaleDateString('en-US', { weekday: 'long' }));
-  const source = (req.query.source as string || 'naspa').toLowerCase();
+export default async function handler(req: NextApiRequest, res: NextApiResponse<Sched | { error: string }>) {
+  const island = (req.query.island as string || 'skn').toLowerCase();
+  const type = (req.query.type as string || 'ferry').toLowerCase();
+  const day = (req.query.day as string || new Date().toLocaleDateString('en-US',{ weekday:'long' }));
 
   try{
-    let routes: Record<Dir, Row[]>;
-    if (type === 'taxi'){
-      routes = await scrapeNaspaTaxi();
-    } else if (source === 'naspa'){
-      routes = await scrapeNaspa(day);
-    } else {
-      routes = await scrapeSknVibes();
+    if (island === 'skn'){
+      if (req.query.source === 'sknvibes') return res.status(200).json(await sknVibes());
+      const taxi = type === 'taxi';
+      return res.status(200).json(await sknNaspa(day, taxi));
     }
-    res.setHeader('Cache-Control', 's-maxage=300, stale-while-revalidate=300');
-    res.status(200).json({ day, source, type, routes, fetchedAt: Date.now() });
+    if (island === 'tt' || island === 'trinidad' || island === 'tto'){
+      return res.status(200).json(await ttit());
+    }
+    if (island === 'ag' || island === 'antigua'){
+      return res.status(200).json(await barbudaExpress());
+    }
+    return res.status(200).json({ error: 'unsupported island. Try island=skn|tt|antigua' });
   }catch(e: any){
-    res.status(200).json({ error: e?.message || 'failed to load schedules' } as any);
+    return res.status(200).json({ error: e?.message || 'failed' });
   }
 }
