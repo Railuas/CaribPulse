@@ -1,33 +1,23 @@
-# Live Movies (Caribbean Cinemas) + Multi‑Island Ferries
+# Island Ferries Tab + News Fix
 
-This pack makes **Movies** and **Ferries** pages live with real data.
+This pack:
+1) Adds a **Ferries** tab to each island hub (`/island/[slug]`) that pulls **live schedules** by island:
+   - St. Kitts & Nevis → NASPA (with Water Taxi + SKNVibes fallback)
+   - Antigua & Barbuda → Barbuda Express
+   - Trinidad & Tobago → TTIT
+   - Others → placeholder message (tell me the operator to add).
 
-## Movies — `/api/movies-live` + `/movies`
-- Scrapes official **Caribbean Cinemas** theater pages for each cinema in `lib/cinemas.ts` (e.g., Trincity, Southpark, St. Kitts, St. Lucia).
-- Extracts **title**, **rating** (when present), and **showtimes** like `01:20 PM`.
-- UI lets you **filter by island** and **search title**.
+2) Hardens the **News API** and shows a friendly error if feeds are down.
 
-> Caribbean Cinemas updates showtimes weekly (usually Thursdays).
+## Files
+- `components/IslandFerriesPanel.tsx` — live ferry UI (auto-selects provider from island name).
+- `pages/island/[slug].tsx` — adds the **Ferries** tab.
+- `pages/api/news.ts` — resilient feed fetcher + image extraction; forces Node runtime.
+- `components/NewsList.tsx` — shows errors / loading states clearly.
 
-## Ferries — `/api/ferries-live` + `/ferries`
-Providers included:
-- **St. Kitts & Nevis** — NASPA (weekday/fri/sat/sun) and **Water Taxi** pages; fallback **SKNVibes** ferry page.
-- **Antigua & Barbuda** — Barbuda Express schedule page.
-- **Trinidad & Tobago** — TTIT schedule page.
-
-UI lets you choose **island** (SKN / Antigua / T&T), toggle **Ferry / Water Taxi** when applicable, select **day**, and switch **source** for SKN.
-
-### Install
-1. Copy these into your repo root:
-   - `lib/cinemas.ts`
-   - `pages/api/movies-live.ts`, `pages/movies.tsx`
-   - `pages/api/ferries-live.ts`, `pages/ferries.tsx`
-2. Deploy. No API keys required.
-
-### Extend
-- Add more theaters in `lib/cinemas.ts` (copy an entry and set the correct `url`).
-- Add more ferry providers inside `pages/api/ferries-live.ts` by following the existing parser pattern.
-
-### Notes
-- Some operator sites change HTML occasionally. If a parser breaks, ping me with the exact link — I’ll tweak the selector quickly.
-- Zoom Earth still blocks embeds; Hurricanes page already opens it in a new tab with Windy as the default embedded radar.
+## Install
+1) Copy these files into your repo (merge/overwrite).
+2) Deploy.
+3) Test:
+   - `/api/news` should return `{ ok: true, items: [...] }`.
+   - Go to an island (e.g., St. Kitts) → Ferries tab → live times appear.

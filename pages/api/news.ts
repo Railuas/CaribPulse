@@ -1,13 +1,16 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 
+export const config = { api: { externalResolver: true } }; // ensure Node runtime
+
+// Add a few solid Caribbean feeds
 const FEEDS = [
   { source: 'Loop News Caribbean', url: 'https://www.loopnews.com/feeds/rss/caribbean' },
-  { source: 'Stabroek News',      url: 'https://www.stabroeknews.com/feed/' },
-  { source: 'Nation News',        url: 'https://www.nationnews.com/feed/' },
-  { source: 'Jamaica Gleaner',    url: 'https://jamaica-gleaner.com/rss/news' },
+  { source: 'Nation News (Barbados)', url: 'https://www.nationnews.com/feed/' },
+  { source: 'Jamaica Gleaner', url: 'https://jamaica-gleaner.com/rss/news' },
+  { source: 'Stabroek News (Guyana)', url: 'https://www.stabroeknews.com/feed/' },
 ];
 
-async function fetchText(url: string, timeoutMs = 8000) {
+async function fetchText(url: string, timeoutMs = 10000) {
   const ctrl = new AbortController();
   const t = setTimeout(() => ctrl.abort(), timeoutMs);
   try {
@@ -45,7 +48,6 @@ async function fetchOgImage(link: string, timeoutMs = 6000) {
   }
 }
 
-// super-light RSS parsing (title/link/pubDate + image)
 async function parseItems(xml: string) {
   const out: { title: string; link: string; published: number; image?: string }[] = [];
   const parts = xml.split('<item>').slice(1);
@@ -61,9 +63,7 @@ async function parseItems(xml: string) {
     const pub = p.match(/<pubDate>(.*?)<\/pubDate>/s)?.[1] || '';
     const published = pub ? Date.parse(pub) : Date.now();
     let image = pickImage(p) || undefined;
-    if (!image && link) {
-      image = await fetchOgImage(link) || undefined;
-    }
+    if (!image && link) image = await fetchOgImage(link) || undefined;
     if (title && link) out.push({ title: title.trim(), link: link.trim(), published, image });
   }
   return out;
@@ -91,8 +91,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       .sort((a, b) => b.published - a.published)
       .slice(0, 24);
     res.setHeader('Cache-Control', 's-maxage=900, stale-while-revalidate=600');
-    res.status(200).json({ items });
-  } catch (e) {
-    res.status(200).json({ items: [] });
+    res.status(200).json({ items, ok: true });
+  } catch (e: any) {
+    res.status(200).json({ items: [], ok: false, error: e?.message || 'failed' });
   }
 }

@@ -1,17 +1,18 @@
 import { useRouter } from 'next/router';
-import { useMemo, useState, useEffect } from 'react';
-import { ISLANDS } from '../../lib/islands';
+import { useMemo, useState } from 'react';
 import dynamic from 'next/dynamic';
+import { ISLANDS } from '../../lib/islands';
 import NewsList from '../../components/NewsList';
 
 const WeatherStage = dynamic(() => import('../../components/WeatherStage'), { ssr: false });
 const HurricaneTracker = dynamic(() => import('../../components/HurricaneTracker'), { ssr: false });
+const IslandFerriesPanel = dynamic(() => import('../../components/IslandFerriesPanel'), { ssr: false });
 
 export default function IslandHub() {
   const router = useRouter();
   const slug = (router.query.slug as string) || '';
   const island = useMemo(() => ISLANDS.find(i => i.slug === slug), [slug]);
-  const [tab, setTab] = useState<'weather'|'news'|'schedules'|'hurricanes'>('weather');
+  const [tab, setTab] = useState<'weather'|'news'|'schedules'|'ferries'|'hurricanes'>('weather');
 
   if (!island) return <div className="muted">Island not found.</div>;
 
@@ -20,10 +21,11 @@ export default function IslandHub() {
       <div className="card" style={{ marginBottom: 12, display:'flex', alignItems:'center', gap:12, flexWrap:'wrap' }}>
         <h3 style={{ margin: 0 }}>{island.name}</h3>
         <div className="muted small">{island.country}</div>
-        <div style={{ marginLeft:'auto', display:'flex', gap:8 }}>
+        <div style={{ marginLeft:'auto', display:'flex', gap:8, flexWrap:'wrap' }}>
           <button className={tab==='weather'?'tab active':'tab'} onClick={()=>setTab('weather')}><span>Weather</span><i className="underline"/></button>
           <button className={tab==='news'?'tab active':'tab'} onClick={()=>setTab('news')}><span>News</span><i className="underline"/></button>
-          <button className={tab==='schedules'?'tab active':'tab'} onClick={()=>setTab('schedules')}><span>Schedules</span><i className="underline"/></button>
+          <button className={tab==='schedules'?'tab active':'tab'} onClick={()=>setTab('schedules')}><span>Flights</span><i className="underline"/></button>
+          <button className={tab==='ferries'?'tab active':'tab'} onClick={()=>setTab('ferries')}><span>Ferries</span><i className="underline"/></button>
           <button className={tab==='hurricanes'?'tab active':'tab'} onClick={()=>setTab('hurricanes')}><span>Hurricanes</span><i className="underline"/></button>
         </div>
       </div>
@@ -43,13 +45,17 @@ export default function IslandHub() {
 
       {tab==='news' && (
         <section className="card">
-          <h4 style={{marginTop:0}}>Latest News</h4>
+          <h4 style={{marginTop:0}}>Latest News: {island.name}</h4>
           <NewsList q={island.name} />
         </section>
       )}
 
       {tab==='schedules' && (
         <IslandSchedules icao={island.icao ?? 'TKPK'} />
+      )}
+
+      {tab==='ferries' && (
+        <IslandFerriesPanel islandName={island.name} />
       )}
 
       {tab==='hurricanes' && (
@@ -59,6 +65,7 @@ export default function IslandHub() {
   );
 }
 
+// --- Flight schedules table (existing inline helper) ---
 function mapRows(type: 'arrivals' | 'departures', data: any) {
   const arr = (data?.arrivals || data?.departures || []) as any[];
   return arr.slice(0, 30).map((x: any) => {
@@ -101,6 +108,7 @@ function Table({ rows, title }:{ rows:ReadonlyArray<any>; title:string }){
   );
 }
 
+import { useEffect, useState } from 'react';
 function IslandSchedules({ icao }:{ icao:string }){
   const [tab, setTab] = useState<'arrivals'|'departures'>('arrivals');
   const [rows, setRows] = useState<ReadonlyArray<any>>([]);
