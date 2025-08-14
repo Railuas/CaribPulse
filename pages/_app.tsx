@@ -2,6 +2,7 @@ import type { AppProps } from 'next/app';
 import Link from 'next/link';
 import '../styles/global.css';
 import '../styles/addons.css';
+import '../styles/news.css';
 
 export default function App({ Component, pageProps }: AppProps) {
   return (

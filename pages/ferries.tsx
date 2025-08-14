@@ -1,79 +1,71 @@
 import { useEffect, useMemo, useState } from 'react';
 
-type FerryRoute = {
-  id: string;
-  origin: string;
-  destination: string;
-  operator: string;
-  days: string[];
-  depart: string;
-  arrive: string;
-  link?: string;
-  notes?: string;
-};
+type Row = { time: string; vessel: string };
+type Dir = 'nevis-to-st-kitts' | 'st-kitts-to-nevis';
 
-export default function Ferries() {
-  const [routes, setRoutes] = useState<ReadonlyArray<FerryRoute>>([]);
-  const [q, setQ] = useState('');
-  const [day, setDay] = useState<string>('All');
+export default function Ferries(){
+  const [type, setType] = useState<'ferry'|'taxi'>('ferry');
+  const [day, setDay] = useState<string>(new Date().toLocaleDateString('en-US',{weekday:'long'}));
+  const [data, setData] = useState<Record<Dir, ReadonlyArray<Row>>>({ 'nevis-to-st-kitts': [], 'st-kitts-to-nevis': [] });
+  const [loading, setLoading] = useState(false);
+  const [source, setSource] = useState<'naspa'|'sknvibes'>('naspa');
 
-  useEffect(() => {
-    (async () => {
-      try {
-        const r = await fetch('/data/ferries.json', { cache: 'no-store' });
-        const j = await r.json();
-        setRoutes(j.routes || []);
-      } catch (e) { console.error(e); }
-    })();
-  }, []);
+  async function load(){
+    setLoading(true);
+    try{
+      const r = await fetch(`/api/ferries-live?type=${type}&day=${encodeURIComponent(day)}&source=${source}`, { cache: 'no-store' });
+      const j = await r.json();
+      if (j.routes) setData(j.routes);
+    }catch(e){ console.error(e); }
+    setLoading(false);
+  }
 
-  const filtered = useMemo(() => {
-    const ql = q.trim().toLowerCase();
-    return routes.filter(r => {
-      const text = `${r.origin} ${r.destination} ${r.operator}`.toLowerCase();
-      const qok = ql ? text.includes(ql) : true;
-      const dok = day==='All' ? true : r.days.includes(day);
-      return qok && dok;
-    });
-  }, [routes, q, day]);
+  useEffect(()=>{ load(); }, [type, day, source]);
 
-  return (
-    <div>
-      <div className="card" style={{ display:'grid', gap:12 }}>
-        <h3 style={{margin:0}}>Ferry Schedules</h3>
-        <div className="muted small">Tip: these are example listings. Confirm times with the operator before travel.</div>
-        <div style={{ display:'flex', gap:8, flexWrap:'wrap', alignItems:'center' }}>
-          <input
-            placeholder="Search island, city, operator…"
-            value={q}
-            onChange={(e)=>setQ(e.target.value)}
-            style={{ flex:'1 1 260px', background:'transparent', color:'white', border:'1px solid rgba(255,255,255,.2)', padding:'8px 10px', borderRadius:8 }}
-          />
-          <select value={day} onChange={(e)=>setDay(e.target.value)} style={{ background:'transparent', color:'white', border:'1px solid rgba(255,255,255,.2)', padding:'8px 10px', borderRadius:8 }}>
-            {['All','Mon','Tue','Wed','Thu','Fri','Sat','Sun','Daily'].map(d=>(<option key={d} value={d}>{d}</option>))}
-          </select>
-        </div>
-      </div>
-      <div className="card" style={{ overflowX:'auto' }}>
+  function Table({ dir, title }:{ dir:Dir; title:string }){
+    const rows = data[dir] || [];
+    return (
+      <section className="card" style={{ overflowX:'auto' }}>
+        <h4 style={{ marginTop: 0 }}>{title}</h4>
         <table style={{ width:'100%', borderCollapse:'collapse' }}>
-          <thead><tr>
-            <th>Origin</th><th>Destination</th><th>Operator</th><th>Days</th><th>Departs</th><th>Arrives</th><th>Link</th>
-          </tr></thead>
+          <thead><tr><th>Time</th><th>Vessel</th></tr></thead>
           <tbody>
-            {filtered.map((r)=> (
-              <tr key={r.id} style={{ borderTop:'1px solid rgba(255,255,255,.08)' }}>
-                <td>{r.origin}</td>
-                <td>{r.destination}</td>
-                <td>{r.operator}</td>
-                <td>{r.days.join(', ')}</td>
-                <td>{r.depart}</td>
-                <td>{r.arrive}</td>
-                <td>{r.link ? <a href={r.link} target="_blank" rel="noreferrer">Site ↗</a> : '-'}</td>
+            {rows.map((r,i)=>(
+              <tr key={i} style={{ borderTop:'1px solid rgba(255,255,255,.08)' }}>
+                <td>{r.time}</td><td>{r.vessel}</td>
               </tr>
             ))}
           </tbody>
         </table>
-        {filtered.length===0 && <div className="muted small" style={{paddingTop:8}}>No routes matched.</div>}
+        {!loading && rows.length===0 && <div className="muted small" style={{ paddingTop:8 }}>No times found for this day.</div>}
+      </section>
+    );
+  }
+
+  return (
+    <div>
+      <div className="card" style={{ display:'grid', gap:12 }}>
+        <h3 style={{margin:0}}>St. Kitts & Nevis — Live Ferries</h3>
+        <div className="muted small">Source: NASPA (official). Flip to SKNVibes as a fallback if needed.</div>
+        <div style={{ display:'flex', gap:8, flexWrap:'wrap', alignItems:'center' }}>
+          <div style={{ display:'flex', gap:8 }}>
+            <button onClick={()=>setType('ferry')} className={type==='ferry'?'tab active':'tab'}><span>Charlestown Ferry</span><i className="underline" /></button>
+            <button onClick={()=>setType('taxi')} className={type==='taxi'?'tab active':'tab'}><span>Oualie Water Taxi</span><i className="underline" /></button>
+          </div>
+          <select value={day} onChange={(e)=>setDay(e.target.value)} style={{ marginLeft:'auto', background:'transparent', color:'white', border:'1px solid rgba(255,255,255,.2)', padding:'8px 10px', borderRadius:8 }}>
+            {['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'].map(d=>(<option key={d} value={d}>{d}</option>))}
+          </select>
+          <select value={source} onChange={(e)=>setSource(e.target.value as any)} style={{ background:'transparent', color:'white', border:'1px solid rgba(255,255,255,.2)', padding:'8px 10px', borderRadius:8 }}>
+            <option value="naspa">NASPA (Official)</option>
+            <option value="sknvibes">SKNVibes (Fallback)</option>
+          </select>
+        </div>
+        {loading && <div className="muted small">Loading…</div>}
+      </div>
+
+      <div style={{ display:'grid', gap:12, gridTemplateColumns:'1fr 1fr' }}>
+        <Table dir="nevis-to-st-kitts" title="Nevis → St. Kitts" />
+        <Table dir="st-kitts-to-nevis" title="St. Kitts → Nevis" />
       </div>
     </div>
   );

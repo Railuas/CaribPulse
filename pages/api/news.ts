@@ -23,9 +23,31 @@ async function fetchText(url: string, timeoutMs = 8000) {
   }
 }
 
-// super-light RSS parsing (title/link/pubDate)
-function parseItems(xml: string) {
-  const items: { title: string; link: string; published: number }[] = [];
+function pickImage(xmlItem: string): string | null {
+  const url =
+    xmlItem.match(/<media:content[^>]*url="(.*?)"/i)?.[1] ||
+    xmlItem.match(/<media:thumbnail[^>]*url="(.*?)"/i)?.[1] ||
+    xmlItem.match(/<enclosure[^>]*url="(.*?)"/i)?.[1] ||
+    null;
+  return url ? url.replace(/&amp;/g, '&') : null;
+}
+
+async function fetchOgImage(link: string, timeoutMs = 6000) {
+  try {
+    const html = await fetchText(link, timeoutMs);
+    const og =
+      html.match(/<meta[^>]+property=["']og:image["'][^>]+content=["'](.*?)["']/i)?.[1] ||
+      html.match(/<meta[^>]+name=["']twitter:image["'][^>]+content=["'](.*?)["']/i)?.[1] ||
+      null;
+    return og ? og.replace(/&amp;/g, '&') : null;
+  } catch {
+    return null;
+  }
+}
+
+// super-light RSS parsing (title/link/pubDate + image)
+async function parseItems(xml: string) {
+  const out: { title: string; link: string; published: number; image?: string }[] = [];
   const parts = xml.split('<item>').slice(1);
   for (const p of parts) {
     const title =
@@ -38,35 +60,39 @@ function parseItems(xml: string) {
       '';
     const pub = p.match(/<pubDate>(.*?)<\/pubDate>/s)?.[1] || '';
     const published = pub ? Date.parse(pub) : Date.now();
-    if (title && link) items.push({ title: title.trim(), link: link.trim(), published });
+    let image = pickImage(p) || undefined;
+    if (!image && link) {
+      image = await fetchOgImage(link) || undefined;
+    }
+    if (title && link) out.push({ title: title.trim(), link: link.trim(), published, image });
   }
-  return items;
+  return out;
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const q = (req.query.q as string | undefined)?.toLowerCase().trim();
   try {
     const results = await Promise.allSettled(
-      FEEDS.map(f =>
-        fetchText(f.url).then(txt => ({ source: f.source, items: parseItems(txt) })),
-      ),
+      FEEDS.map(async f => {
+        const txt = await fetchText(f.url);
+        const items = await parseItems(txt);
+        return { source: f.source, items };
+      }),
     );
     let merged = results.flatMap(r =>
       r.status === 'fulfilled'
         ? r.value.items.map(it => ({ ...it, source: (r as any).value.source }))
         : [],
     );
-    if (q) {
-      merged = merged.filter(it => it.title.toLowerCase().includes(q));
-    }
-    const uniq = new Map<string, { title: string; link: string; published: number; source: string }>();
+    if (q) merged = merged.filter(it => it.title.toLowerCase().includes(q));
+    const uniq = new Map<string, any>();
     for (const it of merged) if (!uniq.has(it.link)) uniq.set(it.link, it);
     const items = Array.from(uniq.values())
       .sort((a, b) => b.published - a.published)
-      .slice(0, 20);
-    res.setHeader('Cache-Control', 's-maxage=600, stale-while-revalidate=300');
+      .slice(0, 24);
+    res.setHeader('Cache-Control', 's-maxage=900, stale-while-revalidate=600');
     res.status(200).json({ items });
-  } catch {
+  } catch (e) {
     res.status(200).json({ items: [] });
   }
 }

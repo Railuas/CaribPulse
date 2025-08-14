@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 
-type Item = { title: string; link: string; source: string; published: number };
+type Item = { title: string; link: string; source: string; published: number; image?: string };
 
 export default function NewsList({ q }: { q?: string }) {
   const [items, setItems] = useState<ReadonlyArray<Item>>([]);
@@ -19,17 +19,16 @@ export default function NewsList({ q }: { q?: string }) {
   }, [q]);
   if (error) return <div className="muted small">News unavailable right now.</div>;
   return (
-    <div className="news-list">
+    <div className="news-grid">
       {items.length === 0 && <div className="muted">Fetching headlines…</div>}
       {items.map((n, i) => (
-        <article key={i} className="news-item" style={{ padding: '10px 0', borderTop: '1px solid rgba(255,255,255,.08)' }}>
-          <a href={n.link} target="_blank" rel="noreferrer">
-            {n.title}
-          </a>
-          <div className="meta muted small">
-            {n.source} · {new Date(n.published).toLocaleString()}
+        <a key={i} href={n.link} target="_blank" rel="noreferrer" className="news-card">
+          <div className="thumb" style={{ backgroundImage: n.image ? `url(${n.image})` : undefined }} />
+          <div className="body">
+            <div className="title">{n.title}</div>
+            <div className="meta">{n.source} · {new Date(n.published).toLocaleString()}</div>
           </div>
-        </article>
+        </a>
       ))}
     </div>
   );
