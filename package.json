@@ -1,6 +1,6 @@
 {
   "name": "caribpulse",
-  "version": "0.2.0",
+  "version": "0.5.0",
   "private": true,
   "scripts": {
     "dev": "next dev -p 5173",
@@ -13,7 +13,8 @@
     "react": "18.3.1",
     "react-dom": "18.3.1",
     "rss-parser": "3.13.0",
-    "@netlify/plugin-nextjs": "^5.3.3"
+    "@netlify/plugin-nextjs": "^5.3.3",
+    "node-html-parser": "6.1.11"
   },
   "devDependencies": {
     "@types/node": "20.11.30",

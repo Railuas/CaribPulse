@@ -14,14 +14,12 @@ export const ISLANDS: Island[] = [
   { code: 'DO', name: 'Dominican Republic', lat: 18.7357, lon: -70.1627 },
   { code: 'GD', name: 'Grenada', lat: 12.1165, lon: -61.6790 },
   { code: 'GP', name: 'Guadeloupe', lat: 16.2650, lon: -61.5510 },
-  { code: 'GT', name: 'Guatemala (Caribbean coast)', lat: 15.72, lon: -88.60 },
   { code: 'GY', name: 'Guyana (Caribbean)', lat: 6.8013, lon: -58.1553 },
   { code: 'HT', name: 'Haiti', lat: 18.9712, lon: -72.2852 },
   { code: 'JM', name: 'Jamaica', lat: 18.1096, lon: -77.2975 },
   { code: 'MQ', name: 'Martinique', lat: 14.6415, lon: -61.0242 },
   { code: 'MS', name: 'Montserrat', lat: 16.7425, lon: -62.1874 },
   { code: 'PR', name: 'Puerto Rico', lat: 18.2208, lon: -66.5901 },
-  { code: 'BL', name: 'Saint Barthélemy', lat: 17.9000, lon: -62.8333 },
   { code: 'KN', name: 'St. Kitts & Nevis', lat: 17.3578, lon: -62.7830 },
   { code: 'LC', name: 'St. Lucia', lat: 13.9094, lon: -60.9789 },
   { code: 'MF', name: 'Saint Martin (French)', lat: 18.0708, lon: -63.0501 },
@@ -32,4 +30,3 @@ export const ISLANDS: Island[] = [
   { code: 'TC', name: 'Turks & Caicos', lat: 21.6940, lon: -71.7979 },
   { code: 'VI', name: 'US Virgin Islands', lat: 18.3358, lon: -64.8963 }
 ];
-export const byCode = (code:string)=> ISLANDS.find(i=>i.code.toLowerCase()===code.toLowerCase());

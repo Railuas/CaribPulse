@@ -1,0 +1,25 @@
+{
+  "sources": [
+    {
+      "type": "static",
+      "rows": [
+        {
+          "route": "St. Kitts \u2192 Nevis",
+          "operator": "Sea Bridge",
+          "depart": "08:00",
+          "arrive": "08:45",
+          "days": "Mon\u2013Sat",
+          "url": ""
+        },
+        {
+          "route": "Nevis \u2192 St. Kitts",
+          "operator": "Sea Bridge",
+          "depart": "17:00",
+          "arrive": "17:45",
+          "days": "Mon\u2013Sat",
+          "url": ""
+        }
+      ]
+    }
+  ]
+}
