@@ -1,17 +1,6 @@
 import Parser from 'rss-parser'
 import type { NextRequest } from 'next/server'
-const parser = new Parser({ customFields: { item: ['media:content','media:thumbnail','enclosure'] } as any })
-
-async function findImage(url:string): Promise<string|undefined> {
-  try {
-    const r = await fetch(url, { next: { revalidate: 3600 }, headers: { 'user-agent': 'Mozilla/5.0 CaribePulse' } })
-    const html = await r.text()
-    const m = html.match(/<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)/i) || html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:image/i)
-    if (m && m[1]) return m[1]
-  } catch {}
-  return undefined
-}
-
+const parser = new Parser({ timeout: 10000 })
 const FEEDS: Record<string, string[]> = {
   region: [
     'https://news.google.com/rss/search?q=Caribbean&hl=en-GB&gl=GB&ceid=GB:en',
@@ -28,24 +17,18 @@ const FEEDS: Record<string, string[]> = {
   Cuba: ['https://www.plenglish.com/feed/'],
   Puerto: ['https://news.google.com/rss/search?q=Puerto+Rico&hl=en-US&gl=US&ceid=US:en']
 }
-
 export async function GET(req: NextRequest) {
   const island = decodeURIComponent((req.nextUrl.searchParams.get('island')||'').trim())
   const keys = Object.keys(FEEDS)
   const matches = keys.filter(k => island.toLowerCase().includes(k.toLowerCase()))
   const list = matches.length ? matches.flatMap(k=>FEEDS[k]) : FEEDS.region
-
   const items: { title: string; link: string; pubDate?: string; source?: string; image?: string }[] = []
   await Promise.all(list.map(async (url) => {
     try {
       const feed = await parser.parseURL(url)
-      for (const entry of feed.items.slice(0, 8)) {
-        const link = entry.link || '#'
-        let image = (entry as any)?.enclosure?.url || (entry as any)?.['media:content']?.url || (entry as any)?.['media:thumbnail']?.url
-        if (!image && link && link.startsWith('http')) {
-          image = await findImage(link)
-        }
-        items.push({ title: entry.title || 'Untitled', link, pubDate: (entry as any).isoDate || (entry as any).pubDate, source: feed.title || new URL(url).hostname, image })
+      for (const entry of feed.items.slice(0, 10)) {
+        const img = (entry as any)?.enclosure?.url || (entry as any)?.image?.url || (entry as any)?.media?.content?.url || undefined
+        items.push({ title: entry.title || 'Untitled', link: entry.link || '#', pubDate: (entry as any).isoDate || (entry as any).pubDate, source: feed.title || new URL(url).hostname, image: img })
       }
     } catch (_) { }
   }))

@@ -1,47 +1,25 @@
-import ferriesData from '@/public/schedules/ferries.json'
-import FlightsWidget from './components/FlightsWidget'
-
-type FerryRow = { route:string; operator:string; depart:string; arrive:string; days?:string; link?:string; note?:string; countryPair?:string }
 export const dynamic = 'force-dynamic'
-
+type FerryRow = { route:string; operator:string; depart:string; arrive:string; days?:string; link?:string; note?:string; countryPair?:string }
+type FlightsResp = { ok:boolean; reason?:string; airports:any[]; results:any[] }
+async function getFerries(){ const r=await fetch('/api/ferries',{cache:'no-store'}); return r.json() as Promise<{rows:FerryRow[]}> }
+async function getFlights(){ const r=await fetch('/api/flights?airport=ALL&dir=arrivals&windowHours=4',{cache:'no-store'}); return r.json() as Promise<FlightsResp> }
 export default async function Schedules(){
-  const rows = (ferriesData as any).rows as FerryRow[] || []
-  return (<main className="container py-8 space-y-8">
-    <h1 className="text-2xl md:text-3xl font-semibold">Schedules</h1>
-
-    <section className="card p-4 md:p-5">
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-        <h2 className="text-xl font-semibold">Ferry schedules</h2>
-        <div className="text-xs text-neutral-500">Data curated from operator sites — tap “Open” for latest.</div>
-      </div>
-      <div className="hidden md:block overflow-x-auto mt-4">
-        <table className="w-full text-sm">
-          <thead className="text-neutral-400"><tr className="text-left">
-            <th className="py-2 pr-3">Route</th><th className="py-2 pr-3">Operator</th><th className="py-2 pr-3">Depart</th><th className="py-2 pr-3">Arrive</th><th className="py-2 pr-3">Days</th><th className="py-2 pr-3">Link</th>
-          </tr></thead>
-          <tbody>
-            {rows.map((r,i)=> (<tr key={i} className="border-t border-neutral-800/60">
-              <td className="py-2 pr-3">{r.route}</td><td className="py-2 pr-3">{r.operator}</td><td className="py-2 pr-3">{r.depart}</td><td className="py-2 pr-3">{r.arrive}</td><td className="py-2 pr-3">{r.days||'—'}</td>
-              <td className="py-2 pr-3">{r.link?<a className="underline" target="_blank" href={r.link}>Open</a>:'—'}</td>
-            </tr>))}
-          </tbody>
-        </table>
-      </div>
-      <div className="grid md:hidden gap-3 mt-4">
-        {rows.map((r,i)=> (<div key={i} className="rounded-xl border border-neutral-800 p-3">
-          <div className="font-medium">{r.route}</div>
-          <div className="text-xs text-neutral-400">{r.operator}</div>
-          <div className="mt-2 grid grid-cols-2 gap-2 text-sm">
-            <div><span className="text-neutral-400">Depart: </span>{r.depart}</div>
-            <div><span className="text-neutral-400">Arrive: </span>{r.arrive}</div>
-            <div className="col-span-2"><span className="text-neutral-400">Days: </span>{r.days||'—'}</div>
-          </div>
-          {r.link && <a className="underline text-sm mt-2 inline-block" target="_blank" href={r.link}>Open operator page</a>}
-          {r.note && <div className="text-xs text-neutral-500 mt-1">{r.note}</div>}
-        </div>))}
-      </div>
+  const [{rows}, flights] = await Promise.all([getFerries(), getFlights()])
+  return (<main className="container" style={{padding:'2rem 0', display:'grid', gap:24}}>
+    <h1 style={{fontSize:'1.75rem',fontWeight:700}}>Schedules</h1>
+    <section className="card" style={{padding:16}}>
+      <h2 style={{fontSize:'1.25rem',fontWeight:700}}>Ferry schedules</h2>
+      <div style={{marginTop:12}}>{rows.map((r,i)=>(<div key={i} style={{borderTop:'1px solid #262626', padding:'6px 0', display:'grid', gridTemplateColumns:'1.2fr .8fr .6fr .6fr .8fr', gap:8}}>
+        <div>{r.route}</div><div>{r.operator}</div><div>{r.depart}</div><div>{r.arrive}</div><div>{r.days||'—'}</div></div>))}</div>
     </section>
-
-    <FlightsWidget />
-  </main>)
-}
+    <section className="card" style={{padding:16}}>
+      <h2 style={{fontSize:'1.25rem',fontWeight:700}}>Flight snapshots (next 4h)</h2>
+      {!flights.ok ? (<div style={{color:'#a3a3a3',fontSize:14,marginTop:8}}>Add <code>AERODATABOX_RAPIDAPI_KEY</code> in Netlify to enable this.</div>) : (
+        <div style={{display:'grid', gap:12, marginTop:12}}>{flights.results.map((b:any,idx:number)=>(
+          <div key={idx} style={{border:'1px solid #262626', borderRadius:12, padding:12, overflow:'auto'}}>
+            <div style={{fontWeight:600}}>{b.airport.name} ({b.airport.iata}) — {b.airport.country}</div>
+            <div style={{fontSize:12,color:'#737373'}}>Arrivals snapshot</div>
+          </div>))}</div>
+      )}
+    </section>
+  </main>)}
