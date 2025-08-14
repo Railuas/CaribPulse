@@ -11,9 +11,7 @@ export async function GET(req: NextRequest) {
   const windowHours = Math.min(12, Math.max(1, Number(url.searchParams.get('windowHours') || 4)))
 
   const list = airport === 'ALL' ? CARIB_AIRPORTS : CARIB_AIRPORTS.filter(a => a.iata === airport)
-  if (!RAPID_KEY) {
-    return Response.json({ ok:false, reason:'no_api_key', airports:list, flights:[] })
-  }
+  if (!RAPID_KEY) { return Response.json({ ok:false, reason:'no_api_key', airports:list, results:[] }) }
 
   const headers = { 'X-RapidAPI-Key': RAPID_KEY!, 'X-RapidAPI-Host': HOST }
   const now = new Date()
@@ -27,6 +25,5 @@ export async function GET(req: NextRequest) {
       results.push({ airport:a, data })
     } catch {}
   }))
-
   return Response.json({ ok:true, airports:list, results })
 }

@@ -28,15 +28,6 @@
       "countryPair": "Bahamas"
     },
     {
-      "route": "Nassau \u2194 Abaco",
-      "operator": "Bahamas Ferries",
-      "depart": "\u2014",
-      "arrive": "\u2014",
-      "days": "Varies",
-      "link": "https://www.bahamasferries.com/",
-      "countryPair": "Bahamas"
-    },
-    {
       "route": "Ceiba (PR) \u2194 Vieques",
       "operator": "PR Maritime Transport Authority",
       "depart": "Hourly",
@@ -73,15 +64,6 @@
       "countryPair": "BVI\u2013USVI"
     },
     {
-      "route": "St. Maarten \u2194 St. Barths",
-      "operator": "Great Bay Express / Voyager",
-      "depart": "Multiple",
-      "arrive": "\u2014",
-      "days": "Daily",
-      "link": "https://www.greatbayferry.com/schedule",
-      "countryPair": "SXM\u2013SBH"
-    },
-    {
       "route": "Marigot \u2194 Anguilla (Blowing Point)",
       "operator": "Public/Private",
       "depart": "Frequent",
@@ -98,15 +80,6 @@
       "days": "Most days",
       "link": "https://barbudaexpress.com/schedule/",
       "countryPair": "Antigua & Barbuda"
-    },
-    {
-      "route": "Montserrat \u2194 Antigua",
-      "operator": "Jaden Inc",
-      "depart": "Varies",
-      "arrive": "\u2014",
-      "days": "Few days",
-      "link": "https://www.ferryto.mon/booking-schedule",
-      "countryPair": "Montserrat\u2013Antigua"
     },
     {
       "route": "St. Kitts \u2194 Nevis",
@@ -136,15 +109,6 @@
       "countryPair": "Dominica\u2013Martinique"
     },
     {
-      "route": "St. Lucia \u2194 Martinique",
-      "operator": "L\u2019Express des \u00celes",
-      "depart": "Varies",
-      "arrive": "\u2014",
-      "days": "Few days",
-      "link": "https://www.express-des-iles.fr/en",
-      "countryPair": "St Lucia\u2013Martinique"
-    },
-    {
       "route": "St. Vincent \u2194 Bequia",
       "operator": "Bequia Express / Admiralty",
       "depart": "Frequent",
@@ -163,7 +127,7 @@
       "countryPair": "Grenada"
     },
     {
-      "route": "Port of Spain \u2194 Scarborough (TAB)",
+      "route": "Port of Spain \u2194 Scarborough",
       "operator": "TT Inter-Island Ferry",
       "depart": "Multiple",
       "arrive": "~3h",

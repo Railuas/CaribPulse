@@ -9,16 +9,16 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (<html lang="en"><body>
-    <header className="border-b border-neutral-800 sticky top-0 z-50 backdrop-blur bg-neutral-950/70">
+    <header className="border-b border-neutral-800 sticky top-0 z-50 backdrop-blur bg-gradient-to-r from-brand-900/70 via-brand-700/40 to-brand-900/70">
       <div className="container py-3 flex items-center justify-between">
         <a href="/" className="flex items-center gap-3">
           <img src="/favicon.svg" alt="CaribePulse" className="h-8 w-8 rounded-xl"/>
           <div>
             <div className="font-semibold">CaribePulse</div>
-            <div className="text-xs text-neutral-400">News · Weather · Islands</div>
+            <div className="text-xs text-neutral-300">News · Weather · Islands</div>
           </div>
         </a>
-        <nav className="flex gap-4 text-sm text-neutral-300">
+        <nav className="flex gap-4 text-sm text-neutral-200">
           <a href="/#news" className="hover:text-white hidden sm:inline">News</a>
           <a href="/schedules" className="hover:text-white">Schedules</a>
           <a href="/hurricanes" className="hover:text-white hidden sm:inline">Hurricanes</a>
