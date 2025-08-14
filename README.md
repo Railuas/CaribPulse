@@ -1,23 +1,23 @@
-# CaribePulse Island Hub Pack
+# Ferries + Movies + Spacing + Hurricane Fix Pack
 
-What this adds
-- **Island hub** at `/island/[slug]` with tabs: Weather • News • Schedules • Hurricanes
-- **Island grid** on the homepage with **Open** buttons linking into the hub
-- **News API** supports `?q=` to filter by island name
-- **Hurricanes** page with Windy embed + Zoom Earth external button, plus a Back link in the tracker
-- **Global header/footer**, **favicon**, small CSS add-ons
-- **Schedules** powered by Aerodatabox via Netlify env `AERODATABOX_RAPIDAPI_KEY`
+This pack adds:
+- `/ferries` — searchable ferry routes (static JSON you can edit in `public/data/ferries.json`)
+- `/movies` — island-by-island movie showtimes (edit `public/data/movies.json`)
+- Better spacing & container sizing (`styles/addons.css`)
+- Hurricane page uses **Windy** embed by default; **Zoom Earth** opens in a new tab (iframes often blocked)
+- Top nav links to **Flights**, **Ferries**, **Movies**
 
-How to install
-1) Delete the `app/` folder if it exists to avoid router conflicts.
-2) Copy all files into your repo (merge/overwrite).
-3) Ensure your global theme is imported in `pages/_app.tsx` (the provided file does this).
-4) Add Netlify env `AERODATABOX_RAPIDAPI_KEY`.
-5) Deploy, then visit `/` and click **Open** on any island card.
+## Install
+1) Make sure you are using the **Pages Router** only (no `/app` folder anywhere).
+2) Copy these files into your repo root (merge/overwrite):
+   - `pages/_app.tsx`, `styles/addons.css`
+   - `components/HurricaneTracker.tsx`, `pages/hurricanes.tsx`
+   - `pages/ferries.tsx`, `pages/movies.tsx`
+   - `public/data/ferries.json`, `public/data/movies.json`
+3) Deploy to Netlify.
 
-Edit islands
-- `lib/islands.ts` — add/rename islands, update lat/lon and default `icao` for schedules.
+## Editing data
+- **Ferries**: open `public/data/ferries.json`. Add, remove, or edit routes.
+- **Movies**: open `public/data/movies.json`. Add cinemas per island and their showtimes.
 
-Notes
-- If Zoom Earth refuses to embed, use the button that opens it in a new tab.
-- If the News widget is empty, feeds might be temporarily slow; it will populate as the API succeeds.
+> Want these driven by live APIs? I can wire specific providers if you share their endpoints or preferred sources.

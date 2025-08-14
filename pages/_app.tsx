@@ -12,7 +12,9 @@ export default function App({ Component, pageProps }: AppProps) {
           <nav className="nav">
             <Link href="/">Home</Link>
             <Link href="/hurricanes">Hurricanes</Link>
-            <Link href="/schedules">Schedules</Link>
+            <Link href="/schedules">Flights</Link>
+            <Link href="/ferries">Ferries</Link>
+            <Link href="/movies">Movies</Link>
             <a href="https://zoom.earth" rel="noreferrer" target="_blank">Zoom Earth ↗</a>
           </nav>
         </div>
@@ -29,8 +31,9 @@ export default function App({ Component, pageProps }: AppProps) {
           <div className="footer-links">
             <Link href="/">Home</Link>
             <Link href="/hurricanes">Hurricanes</Link>
-            <Link href="/schedules">Schedules</Link>
-            <a href="https://zoom.earth" target="_blank" rel="noreferrer">Zoom Earth</a>
+            <Link href="/schedules">Flights</Link>
+            <Link href="/ferries">Ferries</Link>
+            <Link href="/movies">Movies</Link>
           </div>
           <div className="muted small">© {new Date().getFullYear()} CaribePulse</div>
         </div>
