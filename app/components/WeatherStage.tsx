@@ -3,7 +3,7 @@ import React, { useMemo, useState } from "react";
 
 type Point = { lat: number; lon: number; name?: string };
 type Hour = { t: number; temp: number; wind: number; rain: number };
-type Alert = { title: string; desc?: string; severity?: "advisory"|"watch"|"warning"; source?: string };
+type Alert = { title: string; desc?: string; severity?: "advisory"|"watch"|"warning"|string; source?: string };
 type Storm = { name: string; category?: string; movement?: string; pressure?: number; winds?: number };
 
 function SparkInline({data, h=42, strokeWidth=2, ariaLabel}:{data:number[]; h?:number; strokeWidth?:number; ariaLabel?:string}){
@@ -140,7 +140,6 @@ export default function WeatherStage({
                   </div>
                 </div>
               ))}
-              {/* duplicate the list for seamless loop */}
               {storms.map((s, i)=>(
                 <div role="listitem" key={`dup-${i}`} className="storm-card" aria-hidden>
                   <div className="spin-dot" />

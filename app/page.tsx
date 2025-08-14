@@ -1,11 +1,13 @@
-'use client';
-import WeatherStage from "./components/WeatherStage";
-import { samplePoint, sampleHourly, sampleAlerts, sampleStorms } from "../sample/fixtures";
+import WeatherStage from './components/WeatherStage';
+import { samplePoint, sampleHourly, sampleAlerts, sampleStorms } from '../sample/fixtures';
 
 export default function Page(){
   return (
-    <main style={{padding:16}}>
-      <h1 style={{margin:'8px 0 16px 0'}}>Caribbean News & Weather</h1>
+    <div style={{display:'grid', gridTemplateColumns:'360px 1fr', gap:'20px', alignItems:'start'}}>
+      <div>
+        <h2 style={{marginTop:0}}>Caribbean News & Weather</h2>
+        <p className="muted">Tap an island on the left list to refresh the panel.</p>
+      </div>
       <div className="stage-wrap">
         <WeatherStage
           point={samplePoint}
@@ -14,6 +16,6 @@ export default function Page(){
           storms={sampleStorms}
         />
       </div>
-    </main>
-  );
+    </div>
+  )
 }

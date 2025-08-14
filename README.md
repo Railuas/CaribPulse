@@ -1,14 +1,9 @@
-# CaribePulse Drop‑In (App Router)
+# CaribePulse drop-in (fixed)
 
-This package gives you *everything* wired:
-- `app/layout.tsx` + `app/globals.css`
-- `app/components/WeatherStage.tsx`
-- `sample/fixtures.ts`
-- `app/page.tsx` demo page
+- `app/layout.tsx` imports `app/globals.css`
+- `app/components/WeatherStage.tsx` has relaxed `severity` type and animations
+- `sample/fixtures.ts` uses `as const` for severities
+- `app/page.tsx` demo wired to sample data
 
-## Install
-1) Back up your existing app files if needed.
-2) Copy the `/app` and `/sample` folders into your project root, **overwrite if asked**.
-3) Run dev server and open the root page.
-
-If you already have a homepage and only want the panel, copy the `<WeatherStage .../>` block from `app/page.tsx` into your page and keep the global CSS import in `app/layout.tsx`.
+Build:
+  npm run build && npm run start

@@ -1,13 +1,11 @@
-import './globals.css';
-import type { Metadata } from 'next';
-import { ReactNode } from 'react';
-
-export const metadata: Metadata = {
+export const metadata = {
   title: 'CaribePulse',
   description: 'Caribbean News & Weather',
 };
 
-export default function RootLayout({ children }: { children: ReactNode }) {
+import './globals.css';
+
+export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body>{children}</body>
