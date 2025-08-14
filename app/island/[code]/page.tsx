@@ -1,8 +1,9 @@
 import { ISLANDS } from '@/lib/islands'
+interface Props{ params:{ code:string } }
 export const dynamic = 'force-dynamic'
-export default async function IslandPage({ params }: { params: { code: string } }){
+export default async function IslandPage({params}:Props){
   const island = ISLANDS.find(i=>i.code.toLowerCase()===params.code.toLowerCase())
-  if(!island) return <main className="container py-10">Unknown island.</main>
+  if(!island) return <div className="container py-10">Unknown island.</div>
   const dailyUrl = new URL('https://api.open-meteo.com/v1/forecast')
   dailyUrl.searchParams.set('latitude', String(island.lat))
   dailyUrl.searchParams.set('longitude', String(island.lon))
@@ -31,10 +32,17 @@ export default async function IslandPage({ params }: { params: { code: string } 
     <section className="card p-5">
       <h2 className="text-xl font-semibold mb-4">Interactive radar & storms</h2>
       <div className="aspect-video w-full rounded-xl overflow-hidden border border-neutral-800">
-        <iframe title="Zoom Earth Radar" className="w-full h-full"
-          src={`https://zoom.earth/#${island.lat},${island.lon},6z/overlays=labels:off;windgusts:off;radar`}></iframe>
+        <iframe title="Interactive radar" className="w-full h-full"
+          src={`https://embed.windy.com/embed2.html?lat=${island.lat}&lon=${island.lon}&zoom=6&level=surface&overlay=radar&menu=&message=&marker=&calendar=&pressure=&type=map&location=coordinates&detail=&detailLat=${island.lat}&detailLon=${island.lon}`}></iframe>
       </div>
-      <div className="text-xs text-neutral-500 mt-2">Radar & storm tracker by zoom.earth</div>
+      <div className="text-xs text-neutral-500 mt-2">Interactive map by windy.com</div>
+    </section>
+    <section className="card p-5">
+      <h2 className="text-xl font-semibold mb-2">Alerts & Hurricanes</h2>
+      <ul className="list-disc pl-5 text-neutral-300 space-y-1">
+        <li><a className="underline" href="/hurricanes">Atlantic Tracker (interactive)</a></li>
+        <li><a className="underline" target="_blank" href="https://www.nhc.noaa.gov/">NOAA NHC</a></li>
+      </ul>
     </section>
   </main>)
 }

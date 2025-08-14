@@ -2,8 +2,8 @@ import './globals.css'
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: 'CaribPulse — Caribbean News & Weather',
-  description: 'Real-time weather and curated news across the Caribbean.',
+  title: 'CaribePulse — Caribbean News & Weather',
+  description: 'Real-time weather, hurricanes, schedules, and curated headlines across the Caribbean.',
   icons: { icon: '/favicon.svg' }
 }
 
@@ -12,9 +12,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <header className="border-b border-neutral-800 sticky top-0 z-50 backdrop-blur bg-neutral-950/70">
       <div className="container py-3 flex items-center justify-between">
         <a href="/" className="flex items-center gap-3">
-          <img src="/favicon.svg" alt="CaribPulse" className="h-8 w-8 rounded-xl"/>
+          <img src="/favicon.svg" alt="CaribePulse" className="h-8 w-8 rounded-xl"/>
           <div>
-            <div className="font-semibold">CaribPulse</div>
+            <div className="font-semibold">CaribePulse</div>
             <div className="text-xs text-neutral-400">News · Weather · Islands</div>
           </div>
         </a>
@@ -29,8 +29,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <footer className="border-t border-neutral-800 mt-16">
       <div className="container py-10 text-sm text-neutral-400 flex flex-col md:flex-row items-center md:items-start gap-6 md:gap-12">
         <div className="grow">
-          <div className="font-semibold text-neutral-200">CaribPulse</div>
-          <div>Made for the Caribbean. Open‑Meteo for weather, curated RSS for news.</div>
+          <div className="font-semibold text-neutral-200">CaribePulse</div>
+          <div>Open‑Meteo for weather, curated RSS for news. Ferries & flights via operator/public endpoints.</div>
         </div>
         <div className="grid grid-cols-2 gap-8 w-full md:w-auto">
           <div>
