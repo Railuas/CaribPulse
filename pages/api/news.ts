@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 
-export const config = { api: { externalResolver: true } };
+export const config = { api: { externalResolver: true }, runtime: 'nodejs' };
 
 type Item = { title: string; link: string; published: number; image?: string; source?: string };
 type Feed = { source: string; url: string; _items?: Item[] };
@@ -14,7 +14,39 @@ const FEEDS: Feed[] = [
   { source: 'Barbados Today', url: 'https://barbadostoday.bb/feed/' },
 ];
 
-async function fetchText(url: string, timeoutMs = 11000){
+function keywordsForIsland(slug?: string){
+  if (!slug) return [];
+  const table: Record<string,string[]> = {
+    'saint-kitts': ['"St. Kitts"','"Saint Kitts"','Basseterre','SKN','Nevis'],
+    'nevis': ['Nevis','Charlestown','"St. Kitts"'],
+    'barbados': ['Barbados','Bridgetown','Bajan'],
+    'antigua': ['Antigua','"St. John’s"','"St Johns"','"Antigua & Barbuda"'],
+    'barbuda': ['Barbuda','Codrington','"Antigua & Barbuda"'],
+    'dominica': ['Dominica','Roseau'],
+    'saint-lucia': ['"Saint Lucia"','"St. Lucia"','Castries'],
+    'trinidad': ['Trinidad','"Port of Spain"','"Trinidad & Tobago"'],
+    'tobago': ['Tobago','Scarborough','"Trinidad & Tobago"'],
+    'saint-vincent': ['"St. Vincent"','"Saint Vincent"','Kingstown','SVG'],
+    'bequia': ['Bequia','"Port Elizabeth"','SVG'],
+    'grenada': ['Grenada','"St. George’s"'],
+    'jamaica': ['Jamaica','Kingston','"Montego Bay"'],
+    'guyana': ['Guyana','Georgetown'],
+    'guadeloupe': ['Guadeloupe','"Pointe-à-Pitre"','"Basse-Terre"'],
+    'martinique': ['Martinique','"Fort-de-France"'],
+    'curacao': ['Curaçao','Curacao','Willemstad'],
+    'aruba': ['Aruba','Oranjestad'],
+    'bvi-tortola': ['Tortola','"British Virgin Islands"','"Road Town"'],
+    'usvi-st-thomas': ['"St. Thomas"','"U.S. Virgin Islands"','"USVI"','"Charlotte Amalie"'],
+    'usvi-st-croix': ['"St. Croix"','USVI','Christiansted'],
+    'usvi-st-john': ['"St. John"','USVI'],
+    'sint-maarten': ['"Sint Maarten"','"St. Maarten"','Philipsburg'],
+    'saint-martin': ['"Saint Martin"','"St. Martin"','Marigot'],
+    'puerto-rico': ['"Puerto Rico"','"San Juan"'],
+  };
+  return table[slug] || [slug.replace(/-/g,' ')];
+}
+
+async function fetchText(url: string, timeoutMs = 12000){
   const ctrl = new AbortController();
   const t = setTimeout(()=>ctrl.abort(), timeoutMs);
   try{
@@ -29,9 +61,7 @@ async function fetchText(url: string, timeoutMs = 11000){
     });
     if (!res.ok) throw new Error('Bad status ' + res.status);
     return await res.text();
-  } finally {
-    clearTimeout(t);
-  }
+  } finally { clearTimeout(t); }
 }
 
 function pick(tag: string, xml: string){
@@ -53,7 +83,7 @@ function pickImg(xmlItem: string): string | null {
 
 async function fetchOg(link: string){
   try{
-    const html = await fetchText(link, 7000);
+    const html = await fetchText(link, 8000);
     const og = html.match(/<meta[^>]+property=["']og:image["'][^>]+content=["'](.*?)["']/i)?.[1] ||
                html.match(/<meta[^>]+name=["']twitter:image["'][^>]+content=["'](.*?)["']/i)?.[1] ||
                '';
@@ -76,44 +106,27 @@ async function parseFeed(xml: string){
   return items;
 }
 
-function keywordsForIsland(slug: string){
-  const table: Record<string,string[]> = {
-    'saint-kitts': ['St. Kitts','Saint Kitts','Basseterre','SKN','Nevis'],
-    'nevis': ['Nevis','Charlestown','St. Kitts'],
-    'barbados': ['Barbados','Bridgetown','Bajan'],
-    'antigua': ['Antigua','St. John’s','St Johns','Antigua & Barbuda'],
-    'barbuda': ['Barbuda','Codrington','Antigua & Barbuda'],
-    'dominica': ['Dominica','Roseau','Dominican (Dominica)'],
-    'saint-lucia': ['Saint Lucia','St. Lucia','Castries'],
-    'trinidad': ['Trinidad','Port of Spain','Trinidad & Tobago'],
-    'tobago': ['Tobago','Scarborough','Trinidad & Tobago'],
-    'saint-vincent': ['St. Vincent','Saint Vincent','Kingstown','SVG'],
-    'bequia': ['Bequia','Port Elizabeth','SVG'],
-    'grenada': ['Grenada','St. George’s'],
-    'jamaica': ['Jamaica','Kingston','Montego Bay'],
-    'guyana': ['Guyana','Georgetown'],
-    'guadeloupe': ['Guadeloupe','Basse-Terre','Pointe-à-Pitre'],
-    'martinique': ['Martinique','Fort-de-France'],
-    'curacao': ['Curaçao','Curacao','Willemstad'],
-    'aruba': ['Aruba','Oranjestad'],
-    'bvi-tortola': ['Tortola','BVI','Road Town'],
-    'usvi-st-thomas': ['St. Thomas','USVI','Charlotte Amalie'],
-    'usvi-st-croix': ['St. Croix','USVI','Christiansted'],
-    'usvi-st-john': ['St. John','USVI'],
-    'sint-maarten': ['Sint Maarten','St. Maarten','Philipsburg'],
-    'saint-martin': ['Saint Martin','St. Martin','Marigot'],
-    'puerto-rico': ['Puerto Rico','San Juan'],
-  };
-  return table[slug] || [slug.replace(/-/g,' ')];
+function googleNewsFeedUrl(query: string){
+  const q = encodeURIComponent(`${query} when:14d`);
+  return `https://news.google.com/rss/search?q=${q}&hl=en&gl=US&ceid=US:en`;
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse){
   const qParam = (req.query.q as string | undefined)?.toLowerCase().trim();
   const island = (req.query.island as string | undefined)?.toLowerCase().trim();
   const debug = 'debug' in req.query;
+
   try{
+    const list: Feed[] = [...FEEDS];
+    const kws = keywordsForIsland(island);
+    if (kws.length){
+      list.push({ source: 'Google News', url: googleNewsFeedUrl(kws.join(' OR ')) });
+    } else if (qParam){
+      list.push({ source: 'Google News', url: googleNewsFeedUrl(qParam) });
+    }
+
     const results: Array<{ ok: boolean; source: string; count?: number; error?: string }> = [];
-    for (const f of FEEDS){
+    for (const f of list){
       try{
         const xml = await fetchText(f.url);
         const items = await parseFeed(xml);
@@ -127,30 +140,22 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (debug) return res.status(200).json({ ok:true, debug: results });
 
     let merged: Item[] = [];
-    for (const f of FEEDS){
+    for (const f of list){
       if ((f as any)._items) merged = merged.concat((f as any)._items);
     }
 
-    // Apply island keyword filter if island is provided
     if (island){
-      const kws = keywordsForIsland(island).map(s => s.toLowerCase());
-      merged = merged.filter(it => {
-        const title = (it.title || '').toLowerCase();
-        return kws.some(k => title.includes(k));
-      });
+      const kw = kws.map(s => s.toLowerCase());
+      merged = merged.filter(it => kw.some(k => (it.title || '').toLowerCase().includes(k)));
     }
 
-    // Apply explicit q filter second (if provided)
-    if (qParam){
-      const ql = qParam.toLowerCase();
-      merged = merged.filter(it => (it.title || '').toLowerCase().includes(ql));
-    }
+    if (qParam) merged = merged.filter(it => (it.title || '').toLowerCase().includes(qParam));
 
-    // Dedup + sort
     const uniq = new Map<string, Item>();
     for (const it of merged) if (!uniq.has(it.link)) uniq.set(it.link, it);
     const items = Array.from(uniq.values()).sort((a,b)=> b.published - a.published).slice(0, 24);
-    res.setHeader('Cache-Control', 's-maxage=900, stale-while-revalidate=600');
+
+    res.setHeader('Cache-Control', 's-maxage=600, stale-while-revalidate=600');
     return res.status(200).json({ ok:true, items });
   }catch(e:any){
     return res.status(200).json({ ok:false, items:[], error: e?.message || 'failed' });

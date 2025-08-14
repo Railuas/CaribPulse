@@ -32,11 +32,7 @@ export default function IslandHub() {
       {tab==='weather' && (
         <WeatherStage
           point={{ lat: island.lat, lon: island.lon, name: island.name }}
-          hourly={[
-            { t: Date.now(), temp: 30, wind: 10, rain: 0.5 },
-            { t: Date.now()+3600_000, temp: 30, wind: 12, rain: 0.1 },
-            { t: Date.now()+2*3600_000, temp: 29, wind: 11, rain: 0.0 },
-          ]}
+          hourly={[{ t: Date.now(), temp: 30, wind: 10, rain: 0.5 }]}
           alerts={[]}
           storms={[]}
         />
@@ -49,13 +45,8 @@ export default function IslandHub() {
         </section>
       )}
 
-      {tab==='ferries' && (
-        <IslandFerriesPanel islandName={island.name} />
-      )}
-
-      {tab==='hurricanes' && (
-        <HurricaneTracker lat={island.lat} lon={island.lon} zoom={6} />
-      )}
+      {tab==='ferries' && <IslandFerriesPanel islandName={island.name} />}
+      {tab==='hurricanes' && <HurricaneTracker lat={island.lat} lon={island.lon} zoom={6} />}
     </div>
   );
 }

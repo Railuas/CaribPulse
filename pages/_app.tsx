@@ -3,6 +3,7 @@ import Link from 'next/link';
 import '../styles/global.css';
 import '../styles/addons.css';
 import '../styles/news.css';
+import '../styles/layout-hotfix.css';
 
 export default function App({ Component, pageProps }: AppProps) {
   return (

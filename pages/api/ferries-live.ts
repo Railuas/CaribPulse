@@ -1,7 +1,9 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 
+export const config = { api: { externalResolver: true }, runtime: 'nodejs' };
+
 type Row = { time: string; vessel?: string; note?: string };
-type Dir = 'a-to-b' | 'b-to-a'; // generic directions; label by island
+type Dir = 'a-to-b' | 'b-to-a';
 type Sched = { island: string; route: string; source: string; day?: string; routes: Record<Dir, Row[]>; fetchedAt: number };
 
 function norm(s: string){ return s.replace(/\s+/g, ' ').trim(); }
@@ -18,17 +20,22 @@ async function fetchText(url: string, timeoutMs = 12000){
   const ctrl = new AbortController();
   const t = setTimeout(()=>ctrl.abort(), timeoutMs);
   try{
-    const r = await fetch(url, { signal: ctrl.signal, cache: 'no-store', headers: { 'user-agent': 'CaribePulseBot/1.0 (+caribepulse.netlify.app)' } });
+    const r = await fetch(url, {
+      signal: ctrl.signal,
+      cache: 'no-store',
+      redirect: 'follow',
+      headers: { 'user-agent': 'CaribePulseBot/1.0 (+https://caribepulse.netlify.app)' }
+    });
     if (!r.ok) throw new Error('bad status ' + r.status);
     return await r.text();
-  } finally{ clearTimeout(t); }
+  } finally { clearTimeout(t); }
 }
 
-// ------- SKN (NASPA & SKNVibes) -------
 function sliceBetween(text: string, startKey: string, endKey?: string){
-  const s = text.toLowerCase().indexOf(startKey.toLowerCase());
+  const S = text.toLowerCase();
+  const s = S.indexOf(startKey.toLowerCase());
   if (s === -1) return '';
-  const e = endKey ? text.toLowerCase().indexOf(endKey.toLowerCase(), s + startKey.length) : -1;
+  const e = endKey ? S.indexOf(endKey.toLowerCase(), s + startKey.length) : -1;
   return e !== -1 ? text.slice(s, e) : text.slice(s);
 }
 function parsePairs(text: string): Row[] {
@@ -49,6 +56,8 @@ function parsePairs(text: string): Row[] {
   }
   return out;
 }
+
+// SKN: NASPA + Water Taxi + SKNVibes fallback
 function naspaSlugFor(day: string){
   const d = day.toLowerCase();
   if (d.startsWith('fri')) return 'fridayschedule';
@@ -62,12 +71,8 @@ async function sknNaspa(day: string, taxi=false){
   const a = sliceBetween(text, 'nevis to st. kitts', 'st. kitts to nevis') || sliceBetween(text, 'nevis to st. kitts');
   const b = sliceBetween(text, 'st. kitts to nevis');
   return {
-    island: 'Saint Kitts & Nevis',
-    route: taxi ? 'Oualie Water Taxi' : 'Charlestown Ferry',
-    source: 'naspa',
-    day,
-    routes: { 'a-to-b': parsePairs(a), 'b-to-a': parsePairs(b) },
-    fetchedAt: Date.now(),
+    island: 'Saint Kitts & Nevis', route: taxi ? 'Oualie Water Taxi' : 'Charlestown Ferry', source: 'naspa',
+    day, routes: { 'a-to-b': parsePairs(a), 'b-to-a': parsePairs(b) }, fetchedAt: Date.now(),
   } as Sched;
 }
 async function sknVibes(){
@@ -75,49 +80,23 @@ async function sknVibes(){
   const a = sliceBetween(text, 'departs st. kitts', 'departs nevis');
   const b = sliceBetween(text, 'departs nevis');
   return {
-    island: 'Saint Kitts & Nevis',
-    route: 'Charlestown Ferry',
-    source: 'sknvibes',
-    routes: { 'a-to-b': parsePairs(a), 'b-to-a': parsePairs(b) },
-    fetchedAt: Date.now(),
+    island: 'Saint Kitts & Nevis', route: 'Charlestown Ferry', source: 'sknvibes',
+    routes: { 'a-to-b': parsePairs(a), 'b-to-a': parsePairs(b) }, fetchedAt: Date.now(),
   } as Sched;
 }
 
-// ------- Trinidad & Tobago (TTIT) -------
-function parseTtit(text: string){
-  // Try to find POS -> Scarborough and reverse with times; TTIT often posts tables and bulletins.
-  const posToScar = sliceBetween(text, 'port of spain to scarborough', 'scarborough to port of spain') || sliceBetween(text, 'port of spain → scarborough', 'scarborough → port of spain');
-  const scarToPos = sliceBetween(text, 'scarborough to port of spain') || sliceBetween(text, 'scarborough → port of spain');
-  function timesOnly(chunk: string){
-    return Array.from(chunk.matchAll(TIME_RE)).map(m => ({ time: m[0].toUpperCase() }));
-  }
-  return { a: timesOnly(posToScar), b: timesOnly(scarToPos) };
-}
-async function ttit(){
-  const text = toText(await fetchText('https://www.ttitferry.com/schedule/'));
-  const { a, b } = parseTtit(text);
-  return {
-    island: 'Trinidad & Tobago',
-    route: 'Port of Spain ↔ Scarborough',
-    source: 'ttit',
-    routes: { 'a-to-b': a, 'b-to-a': b },
-    fetchedAt: Date.now(),
-  } as Sched;
-}
-
-// ------- Antigua ↔ Barbuda (Barbuda Express) -------
-function parseBarbudaExpress(text: string){
-  // The schedule page has a clear table with days and times; we emit both directions with the first time per row.
+// Antigua & Barbuda: Barbuda Express
+async function barbudaExpress(){
+  const text = toText(await fetchText('https://www.barbudaexpress.com/schedule.html'));
+  // Rough parse: find two columns of times in lines
   const lines = text.split(/\n|\r|\s{2,}/).map(norm).filter(Boolean);
   const days = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
-  const a: Row[] = []; const b: Row[] = [];
+  const a: Row[] = [], b: Row[] = [];
   for (let i=0;i<lines.length;i++){
     const L = lines[i];
     const d = days.find(dd => L.toLowerCase().startsWith(dd.toLowerCase()));
     if (d){
-      // Expect pattern: Day, Depart Antigua, Depart Barbuda
-      // Find next two time tokens
-      let times: string[] = [];
+      const times: string[] = [];
       for (let j=i+1;j<Math.min(i+8, lines.length);j++){
         const m = lines[j].match(/\b\d{1,2}:\d{2}\s?(AM|PM)\b/i);
         if (m){ times.push(m[0].toUpperCase()); if (times.length>=2) break; }
@@ -126,17 +105,21 @@ function parseBarbudaExpress(text: string){
       if (times[1]) b.push({ time: times[1] });
     }
   }
-  return { a, b };
-}
-async function barbudaExpress(){
-  const text = toText(await fetchText('https://www.barbudaexpress.com/schedule.html'));
-  const { a, b } = parseBarbudaExpress(text);
   return {
-    island: 'Antigua & Barbuda',
-    route: 'St. John’s ↔ Codrington',
-    source: 'barbudaexpress',
-    routes: { 'a-to-b': a, 'b-to-a': b },
-    fetchedAt: Date.now(),
+    island: 'Antigua & Barbuda', route: 'St. John’s ↔ Codrington', source: 'barbudaexpress',
+    routes: { 'a-to-b': a, 'b-to-a': b }, fetchedAt: Date.now(),
+  } as Sched;
+}
+
+// Trinidad & Tobago: TTIT
+async function ttit(){
+  const text = toText(await fetchText('https://www.ttitferry.com/schedule/'));
+  function timesOnly(chunk: string){ return Array.from(chunk.matchAll(TIME_RE)).map(m => ({ time: m[0].toUpperCase() })); }
+  const posToScar = sliceBetween(text, 'port of spain to scarborough', 'scarborough to port of spain') || sliceBetween(text, 'port of spain → scarborough', 'scarborough → port of spain');
+  const scarToPos = sliceBetween(text, 'scarborough to port of spain') || sliceBetween(text, 'scarborough → port of spain');
+  return {
+    island: 'Trinidad & Tobago', route: 'Port of Spain ↔ Scarborough', source: 'ttit',
+    routes: { 'a-to-b': timesOnly(posToScar), 'b-to-a': timesOnly(scarToPos) }, fetchedAt: Date.now(),
   } as Sched;
 }
 
@@ -151,13 +134,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       const taxi = type === 'taxi';
       return res.status(200).json(await sknNaspa(day, taxi));
     }
-    if (island === 'tt' || island === 'trinidad' || island === 'tto'){
-      return res.status(200).json(await ttit());
-    }
-    if (island === 'ag' || island === 'antigua'){
-      return res.status(200).json(await barbudaExpress());
-    }
-    return res.status(200).json({ error: 'unsupported island. Try island=skn|tt|antigua' });
+    if (island === 'antigua'){ return res.status(200).json(await barbudaExpress()); }
+    if (island === 'tt' || island === 'trinidad' || island === 'tto'){ return res.status(200).json(await ttit()); }
+    return res.status(200).json({ error: 'unsupported island. Try island=skn|antigua|tt' });
   }catch(e: any){
     return res.status(200).json({ error: e?.message || 'failed' });
   }
