@@ -1,22 +1,14 @@
-import Head from 'next/head';
-import HurricaneTracker from '../components/HurricaneTracker';
+import dynamic from 'next/dynamic';
 
-export default function Hurricanes(){
+const HurricaneTracker = dynamic(() => import('../components/HurricaneTracker'), { ssr: false });
+
+export default function Hurricanes() {
   return (
-    <>
-      <Head><title>CaribePulse · Hurricanes</title></Head>
-      <div className="container">
-        <div className="header">
-          <div className="brand"><span className="dot" /><strong>CaribePulse</strong><span className="muted">Hurricane tracker</span></div>
-          <nav className="nav">
-            <a href="/">Home</a>
-            <a href="/hurricanes">Hurricanes</a>
-          </nav>
-        </div>
-        <div className="stage-wrap">
-          <HurricaneTracker lat={15.3} lon={-61.4} zoom={5} />
-        </div>
-      </div>
-    </>
+    <div>
+      <HurricaneTracker />
+      <p className="muted small" style={{ marginTop: 8 }}>
+        Note: Some networks block Zoom Earth iframes. Use the “Open Zoom Earth” link if the embed doesn’t load.
+      </p>
+    </div>
   );
 }

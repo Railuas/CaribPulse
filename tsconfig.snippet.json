@@ -1,0 +1,14 @@
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": { "@/*": ["./*"] },
+    "strictNullChecks": true
+  },
+  "exclude": [
+    "node_modules", ".next", "out", "dist",
+    "caribpulse_netlify_ready/**",
+    "caribpulse_live_connectors/**",
+    "CaribePulse_full_site*/**",
+    "CaribePulse_weather_stage_addon*/**"
+  ]
+}
