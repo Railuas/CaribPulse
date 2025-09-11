@@ -174,8 +174,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         const urls = [...(feedsJson['region'] || []), ...(feedsJson[match] || [])];
         merged = [];
         for (const u of urls){
-          const items = await parseFeed(u, match);
-          merged.push(...items);
+          try{
+            const xml = await fetchText(u);
+            const items = await parseFeed(xml);
+            const sourceName = (()=>{
+              try{ const { hostname } = new URL(u); return hostname.replace(/^www\./,''); }catch{ return match; }
+            })();
+            merged.push(...items.map(i => ({ ...i, source: sourceName })));
+          }catch{ /* skip broken feed */ }
         }
       }
     }
