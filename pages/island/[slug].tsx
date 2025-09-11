@@ -9,6 +9,7 @@ const HurricaneTracker = dynamic(() => import('../../components/HurricaneTracker
 const IslandFerriesPanel = dynamic(() => import('../../components/IslandFerriesPanel'), { ssr: false });
 const IslandMoviesPanel = dynamic(() => import('../../components/IslandMoviesPanel'), { ssr: false });
 const SportsTicker = dynamic(() => import('../../components/SportsTicker'), { ssr: false });
+import CountrySwitcher from '../../components/CountrySwitcher';
 
 export default function IslandHub() {
   const router = useRouter();
