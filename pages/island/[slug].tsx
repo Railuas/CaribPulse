@@ -25,7 +25,7 @@ export default function IslandHub() {
         <div className="muted small">{island.country}</div>
         <div style={{ marginLeft:'auto', display:'flex', gap:8, flexWrap:'wrap' }}>
           <button className={tab==='weather'?'tab active':'tab'} onClick={()=>setTab('weather')
-      <section className="card" style={{marginTop:12}}>
+      <section classNameassName="card" style={{marginTop:12}}>
         <h4 style={{margin:'0 0 8px'}}>Local Services</h4>
         <div className="muted small" style={{marginBottom:8}}>Auto-detected for {island.name}</div>
         <div className="row" style={{gap:12}}>
@@ -48,16 +48,49 @@ export default function IslandHub() {
       </div>
 
       {tab==='weather' && (
-        <WeatherStage
+  <>
+    <WeatherStage
           point={{ lat: island.lat, lon: island.lon, name: island.name }}
           hourly={[{ t: Date.now(), temp: 30, wind: 10, rain: 0.5 }]}
           alerts={[]}
           storms={[]}
         />
-      )}
+
+    <section className="card" style={{marginTop:12}}>
+      <h4 style={{margin:'0 0 8px'}}>Local Services</h4>
+      <div className="muted small" style={{marginBottom:8}}>Auto-detected for {island.name}</div>
+      <div className="row" style={{gap:12}}>
+        <div className="col">
+          <h5 style={{margin:'0 0 6px'}}>Ferries</h5>
+          <IslandFerriesPanel islandName={island.name} />
+        </div>
+        <div className="col">
+          <h5 style={{margin:'0 0 6px'}}>Movies</h5>
+          <IslandMoviesPanel islandName={island.country || island.name} />
+        </div>
+      </div>
+    </section>
+
+  </>
+)}
+      <section className="card" style={{marginTop:12}}>
+        <h4 style={{margin:'0 0 8px'}}>Local Services</h4>
+        <div className="muted small" style={{marginBottom:8}}>Auto-detected for {island.name}</div>
+        <div className="row" style={{gap:12}}>
+          <div className="col">
+            <h5 style={{margin:'0 0 6px'}}>Ferries</h5>
+            <IslandFerriesPanel islandName={island.name} />
+          </div>
+          <div className="col">
+            <h5 style={{margin:'0 0 6px'}}>Movies</h5>
+            <IslandMoviesPanel islandName={island.country || island.name} />
+          </div>
+        </div>
+      </section>
+    }
 
       {tab==='news' && (
-        <section className="card">
+        <section classNameassName="card">
           <h4 style={{marginTop:0}}>Latest News: {island.name}</h4>
           <NewsList island={(island.country || island.name)} />
         </section>
@@ -65,7 +98,7 @@ export default function IslandHub() {
 
       {tab==='ferries' && <IslandFerriesPanel islandName={island.name} />}
       {tab==='sports' && (
-        <section className="card">
+        <section classNameassName="card">
           <h4 style={{marginTop:0}}>Sports in {island.country || island.name}</h4>
           <SportsTicker country={(island.country || island.name)} />
         </section>
