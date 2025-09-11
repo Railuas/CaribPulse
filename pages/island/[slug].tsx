@@ -7,6 +7,7 @@ import NewsList from '../../components/NewsList';
 const WeatherStage = dynamic(() => import('../../components/WeatherStage'), { ssr: false });
 const HurricaneTracker = dynamic(() => import('../../components/HurricaneTracker'), { ssr: false });
 const IslandFerriesPanel = dynamic(() => import('../../components/IslandFerriesPanel'), { ssr: false });
+const SportsTicker = dynamic(() => import('../../components/SportsTicker'), { ssr: false });
 
 export default function IslandHub() {
   const router = useRouter();
@@ -41,11 +42,17 @@ export default function IslandHub() {
       {tab==='news' && (
         <section className="card">
           <h4 style={{marginTop:0}}>Latest News: {island.name}</h4>
-          <NewsList island={slug} />
+          <NewsList island={(island.country || island.name)} />
         </section>
       )}
 
       {tab==='ferries' && <IslandFerriesPanel islandName={island.name} />}
+      {tab==='sports' && (
+        <section className="card">
+          <h4 style={{marginTop:0}}>Sports in {island.country || island.name}</h4>
+          <SportsTicker country={(island.country || island.name)} />
+        </section>
+      )}
       {tab==='hurricanes' && <HurricaneTracker lat={island.lat} lon={island.lon} zoom={6} />}
     </div>
   );

@@ -1,6 +1,6 @@
 import dynamic from 'next/dynamic';
 import IslandGrid from '../components/IslandGrid';
-import NewsList from '../components/NewsList';
+import CountryNews from '../components/CountryNews';
 
 const WeatherStage = dynamic(() => import('../components/WeatherStage'), { ssr: false });
 
@@ -22,7 +22,7 @@ export default function Home(){
       </section>
       <section className="card">
         <h3 style={{marginTop:0}}>Latest Caribbean News</h3>
-        <NewsList />
+        <CountryNews />
       </section>
     </div>
   );

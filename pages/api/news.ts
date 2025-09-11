@@ -5,6 +5,20 @@ export const config = { api: { externalResolver: true }, runtime: 'nodejs' };
 type Item = { title: string; link: string; published: number; image?: string; source?: string };
 type Feed = { source: string; url: string; _items?: Item[] };
 
+import fs from 'fs';
+import path from 'path';
+
+function readFeedsJson(): Record<string, string[]>{
+  try{
+    const filePath = path.join(process.cwd(), 'public', 'feeds.json');
+    const raw = fs.readFileSync(filePath, 'utf-8');
+    return JSON.parse(raw);
+  }catch{
+    return {};
+  }
+}
+
+
 const FEEDS: Feed[] = [
   { source: 'Loop News Caribbean', url: 'https://www.loopnews.com/feeds/rss/caribbean' },
   { source: 'Nation News (Barbados)', url: 'https://www.nationnews.com/feed/' },
@@ -147,6 +161,23 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (island){
       const kw = kws.map(s => s.toLowerCase());
       merged = merged.filter(it => kw.some(k => (it.title || '').toLowerCase().includes(k)));
+    }
+
+
+    const feedsJson = readFeedsJson();
+    const islandParam = (req.query.island as string | undefined)?.toLowerCase();
+    if (islandParam){
+      const keys = Object.keys(feedsJson);
+      const match = keys.find(k => k.toLowerCase().includes(islandParam) || islandParam.includes(k.toLowerCase()));
+      if (match){
+        // rebuild FEEDS dynamically: include region + country-specific
+        const urls = [...(feedsJson['region'] || []), ...(feedsJson[match] || [])];
+        merged = [];
+        for (const u of urls){
+          const items = await parseFeed(u, match);
+          merged.push(...items);
+        }
+      }
     }
 
     if (qParam) merged = merged.filter(it => (it.title || '').toLowerCase().includes(qParam));
