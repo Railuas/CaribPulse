@@ -17,9 +17,7 @@ export default function NewsList(props: Props) {
     const run = async () => {
       setLoading(true);
       try {
-        const url = island
-          ? `/api/news?country=${encodeURIComponent(island)}`
-          : `/api/news`;
+        const url = island ? `/api/news?country=${encodeURIComponent(island)}` : `/api/news`;
         const r = await fetch(url);
         const json = await r.json();
         setFetched(Array.isArray(json.items) ? json.items : []);
@@ -65,10 +63,10 @@ export default function NewsList(props: Props) {
       <h2 className="section-title">{title}</h2>
       <div className="grid">
         {items.map((n, i) => (
-          <article className="card" key={i} style={{ display:'grid', gridTemplateColumns:'96px 1fr', gap:12, alignItems:'start' }}>
+          <article className="card" key={i} style={{ display:'grid', gridTemplateColumns:'120px 1fr', gap:12, alignItems:'start' }}>
             <a href={n.link} target="_blank" rel="noreferrer" style={{ display:'contents' }}>
               <div style={{
-                width:96, height:72, borderRadius:10, overflow:'hidden',
+                width:120, height:80, borderRadius:10, overflow:'hidden',
                 background:'rgba(255,255,255,.06)', border:'1px solid rgba(255,255,255,.08)'
               }}>
                 {n.image ? (
@@ -89,4 +87,3 @@ export default function NewsList(props: Props) {
     </section>
   );
 }
-
