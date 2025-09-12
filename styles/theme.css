@@ -1,0 +1,48 @@
+/* Subtle gradient backgrounds for section cards */
+.card {
+  background: linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.03));
+}
+
+/* Section divider */
+.divider {
+  height: 1px;
+  background: linear-gradient(to right, transparent, var(--border), transparent);
+  margin: 20px 0;
+}
+
+/* Section header w/ accent underline */
+.section-title {
+  position: relative;
+  padding-bottom: 6px;
+}
+.section-title::after {
+  content: "";
+  position: absolute;
+  left: 0; bottom: 0;
+  width: 56px; height: 2px;
+  background: var(--accent);
+  border-radius: 2px;
+}
+
+/* Brand hover */
+.brand { color: var(--text); text-decoration: none; }
+.brand:hover { text-decoration: none; opacity: .9; }
+
+/* Table styles */
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+.table th, .table td {
+  border-bottom: 1px solid var(--border);
+  padding: 10px 8px;
+  text-align: left;
+}
+.table th { color: var(--muted); font-weight: 600; }
+.table tr:hover td { background: rgba(255,255,255,.03); }
+
+.badge {
+  display:inline-block; padding:2px 8px; border:1px solid var(--border);
+  border-radius:999px; font-size:12px; color:var(--muted);
+}
