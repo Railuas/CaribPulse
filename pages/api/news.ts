@@ -2,13 +2,11 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 
 type Item = { title: string; link: string; source?: string; image?: string };
 
-// Regional defaults
 const REGIONAL_FEEDS: { title:string; url:string; source:string }[] = [
   { title: 'Loop Caribbean', url: 'https://www.loopnews.com/rss.xml', source:'Loop Caribbean' },
   { title: 'Caribbean National Weekly', url: 'https://www.caribbeannationalweekly.com/feed/', source:'CNW' },
 ];
 
-// Curated by country
 const FEEDS_BY_COUNTRY: Record<string, { title:string; url:string; source:string }[]> = {
   'Jamaica': [
     { title: 'Gleaner', url: 'https://jamaica-gleaner.com/feed', source: 'Gleaner' },
@@ -48,16 +46,12 @@ function pickImage(xmlChunk: string): string | undefined {
     const m = xmlChunk.match(re);
     return m?.[1]?.trim();
   };
-  // media:content url=""
   let url = get(/<media:content[^>]*url=["']([^"']+)["'][^>]*>/i);
   if (url) return url;
-  // media:thumbnail
   url = get(/<media:thumbnail[^>]*url=["']([^"']+)["'][^>]*>/i);
   if (url) return url;
-  // enclosure url=""
   url = get(/<enclosure[^>]*url=["']([^"']+)["'][^>]*>/i);
   if (url) return url;
-  // <img src="..."> in description/content:encoded
   url = get(/<img[^>]*src=["']([^"']+)["']/i);
   return url || undefined;
 }
