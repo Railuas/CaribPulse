@@ -1,7 +1,8 @@
 import Link from 'next/link';
 
-export default function WeatherStage(){
-  // Show quick-glance tiles (stubbed) + a "View more" button
+export default function WeatherStage({ country }: { country?: string }){
+  const label = country ? `Weather — ${country}` : 'Weather';
+  const q = country ? `?country=${encodeURIComponent(country)}` : '';
   const cities = [
     { name: 'Kingston', temp: '31°', cond:'Partly Cloudy' },
     { name: 'Port of Spain', temp: '30°', cond:'Humid' },
@@ -10,8 +11,8 @@ export default function WeatherStage(){
   return (
     <section className="section">
       <div className="section-head">
-        <h2 className="section-title">Weather</h2>
-        <Link className="btn" href="/weather">View more</Link>
+        <h2 className="section-title">{label}</h2>
+        <Link className="btn" href={`/weather${q}`}>View more</Link>
       </div>
       <div className="grid trio">
         {cities.map((c,i)=> (

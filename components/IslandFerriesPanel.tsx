@@ -1,6 +1,8 @@
 import Link from 'next/link';
 
-export default function IslandFerriesPanel(){
+export default function IslandFerriesPanel({ country }: { country?: string }){
+  const label = country ? `Ferries — ${country}` : 'Ferries';
+  const q = country ? `?country=${encodeURIComponent(country)}` : '';
   const ferries = [
     { route:'St. Kitts ↔ Nevis', time:'Every 30–60 min', status:'Normal' },
     { route:'St. Lucia ↔ Martinique', time:'2x daily', status:'Normal' },
@@ -9,8 +11,8 @@ export default function IslandFerriesPanel(){
   return (
     <section className="section">
       <div className="section-head">
-        <h2 className="section-title">Ferries</h2>
-        <Link className="btn" href="/ferries">Schedules</Link>
+        <h2 className="section-title">{label}</h2>
+        <Link className="btn" href={`/ferries${q}`}>Schedules</Link>
       </div>
       <div className="grid trio">
         {ferries.map((f,i)=> (

@@ -1,6 +1,8 @@
 import Link from 'next/link';
 
-export default function SportsTicker(){
+export default function SportsTicker({ country }: { country?: string }){
+  const label = country ? `Sports — ${country}` : 'Sports';
+  const q = country ? `?country=${encodeURIComponent(country)}` : '';
   const items = [
     { league:'CPL', text:'Guyana Amazon Warriors clinch playoff spot' },
     { league:'Football', text:'Reggae Boyz friendly announced for October' },
@@ -9,8 +11,8 @@ export default function SportsTicker(){
   return (
     <section className="section">
       <div className="section-head">
-        <h2 className="section-title">Sports</h2>
-        <Link className="btn" href="/sports">View more</Link>
+        <h2 className="section-title">{label}</h2>
+        <Link className="btn" href={`/sports${q}`}>View more</Link>
       </div>
       <div className="grid trio">
         {items.map((it,i)=> (

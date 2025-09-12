@@ -1,7 +1,8 @@
 import Head from 'next/head';
 import dynamic from 'next/dynamic';
-import CountrySwitcher from '@/components/CountrySwitcher';
+import CountrySelect from '@/components/CountrySelect';
 import NewsList from '@/components/NewsList';
+import Footer from '@/components/Footer';
 import { SLUG_TO_COUNTRY } from '@/lib/countryMap';
 
 const WeatherStage = dynamic(() => import('@/components/WeatherStage'), { ssr: false });
@@ -18,17 +19,16 @@ export default function CountryPage({ countryName }:{ countryName:string }){
         <meta name="description" content={`Latest headlines in ${countryName} — news, sports, weather, ferries, and movies on Magnetide.`} />
       </Head>
 
-      <CountrySwitcher />
-
-      {/* Country-specific news */}
-      <NewsList island={countryName} />
-
-      {/* Widgets (no extra props, same as home) */}
-      <section className="section"><WeatherStage /></section>
-      <section className="section"><SportsTicker /></section>
-      <section className="section"><HurricaneTracker /></section>
-      <section className="section"><IslandFerriesPanel /></section>
-      <section className="section"><IslandMoviesPanel /></section>
+      <CountrySelect />
+      <div className="container">
+        <NewsList island={countryName} />
+        <WeatherStage country={countryName} />
+        <SportsTicker country={countryName} />
+        <HurricaneTracker country={countryName} />
+        <IslandFerriesPanel country={countryName} />
+        <IslandMoviesPanel country={countryName} />
+      </div>
+      <Footer />
     </>
   );
 }

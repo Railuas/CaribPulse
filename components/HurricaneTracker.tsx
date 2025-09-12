@@ -1,6 +1,8 @@
 import Link from 'next/link';
 
-export default function HurricaneTracker(){
+export default function HurricaneTracker({ country }: { country?: string }){
+  const label = country ? `Hurricane Tracker — ${country}` : 'Hurricane Tracker';
+  const q = country ? `?country=${encodeURIComponent(country)}` : '';
   const systems = [
     { name:'AL90', status:'Tropical Storm', loc:'15.2N, 58.6W' },
     { name:'Wave EATL', status:'Invest', loc:'Near Cape Verde' }
@@ -8,8 +10,8 @@ export default function HurricaneTracker(){
   return (
     <section className="section">
       <div className="section-head">
-        <h2 className="section-title">Hurricane Tracker</h2>
-        <Link className="btn" href="/weather">Storm maps</Link>
+        <h2 className="section-title">{label}</h2>
+        <Link className="btn" href={`/weather${q}`}>Storm maps</Link>
       </div>
       <div className="grid trio">
         {systems.map((s,i)=> (

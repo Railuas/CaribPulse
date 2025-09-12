@@ -1,9 +1,9 @@
 import Head from 'next/head';
 import dynamic from 'next/dynamic';
-import CountrySwitcher from '@/components/CountrySwitcher';
+import CountrySelect from '@/components/CountrySelect';
 import NewsList from '@/components/NewsList';
+import Footer from '@/components/Footer';
 
-// Client-only widgets (so they render on Netlify and in browser)
 const WeatherStage = dynamic(() => import('@/components/WeatherStage'), { ssr: false });
 const SportsTicker = dynamic(() => import('@/components/SportsTicker'), { ssr: false });
 const HurricaneTracker = dynamic(() => import('@/components/HurricaneTracker'), { ssr: false });
@@ -18,17 +18,16 @@ export default function Home(){
         <meta name="description" content="Magnetide — magnetic Caribbean news, sports, business, weather, ferries, and movies." />
       </Head>
 
-      <CountrySwitcher />
-
-      {/* Regional news (no country param) */}
-      <NewsList island={undefined} />
-
-      {/* Widgets */}
-      <section className="section"><WeatherStage /></section>
-      <section className="section"><SportsTicker /></section>
-      <section className="section"><HurricaneTracker /></section>
-      <section className="section"><IslandFerriesPanel /></section>
-      <section className="section"><IslandMoviesPanel /></section>
+      <CountrySelect />
+      <div className="container">
+        <NewsList island={undefined} />
+        <WeatherStage />
+        <SportsTicker />
+        <HurricaneTracker />
+        <IslandFerriesPanel />
+        <IslandMoviesPanel />
+      </div>
+      <Footer />
     </>
   );
 }

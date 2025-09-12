@@ -1,6 +1,8 @@
 import Link from 'next/link';
 
-export default function IslandMoviesPanel(){
+export default function IslandMoviesPanel({ country }: { country?: string }){
+  const label = country ? `Movies — ${country}` : 'Movies';
+  const q = country ? `?country=${encodeURIComponent(country)}` : '';
   const movies = [
     { title:'Blue Surf', cinema:'Caribbean Cinemas, POS', time:'7:10 PM' },
     { title:'Island Heist', cinema:'Mall at Marathon, Nassau', time:'8:00 PM' },
@@ -9,8 +11,8 @@ export default function IslandMoviesPanel(){
   return (
     <section className="section">
       <div className="section-head">
-        <h2 className="section-title">Movies</h2>
-        <Link className="btn" href="/movies">All showtimes</Link>
+        <h2 className="section-title">{label}</h2>
+        <Link className="btn" href={`/movies${q}`}>All showtimes</Link>
       </div>
       <div className="grid trio">
         {movies.map((m,i)=> (

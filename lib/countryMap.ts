@@ -1,24 +1,28 @@
-export const SLUG_TO_COUNTRY: Record<string, string> = {
-  "antigua-and-barbuda":"Antigua & Barbuda",
-  "aruba":"Aruba",
-  "bahamas":"Bahamas",
-  "barbados":"Barbados",
-  "belize":"Belize",
-  "bermuda":"Bermuda",
-  "british-virgin-islands":"British Virgin Islands",
-  "cayman-islands":"Cayman Islands",
-  "dominica":"Dominica",
-  "dominican-republic":"Dominican Republic",
-  "grenada":"Grenada",
-  "guyana":"Guyana",
-  "haiti":"Haiti",
-  "jamaica":"Jamaica",
-  "montserrat":"Montserrat",
-  "st-kitts-and-nevis":"St. Kitts and Nevis",
-  "saint-lucia":"Saint Lucia",
-  "st-vincent-and-the-grenadines":"Saint Vincent and the Grenadines",
-  "trinidad-and-tobago":"Trinidad and Tobago",
-  "sint-maarten":"Sint Maarten",
-  "puerto-rico":"Puerto Rico",
-  "us-virgin-islands":"United States Virgin Islands"
-};
+export const COUNTRIES = [
+  'All Caribbean',
+  'Jamaica',
+  'Trinidad and Tobago',
+  'Barbados',
+  'Grenada',
+  'Guyana',
+  'Saint Lucia',
+  'Dominican Republic',
+  'Haiti',
+  'Bahamas',
+  'St. Kitts and Nevis',
+  'Curaçao',
+  'Antigua and Barbuda',
+  'Dominica',
+  'Saint Vincent and the Grenadines'
+] as const;
+
+export type Country = typeof COUNTRIES[number];
+
+export const COUNTRY_TO_SLUG: Record<string,string> = Object.fromEntries(
+  COUNTRIES.map(name => [name, name.toLowerCase()
+    .replace(/&/g,'and').replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,'')])
+);
+
+export const SLUG_TO_COUNTRY: Record<string,string> = Object.fromEntries(
+  Object.entries(COUNTRY_TO_SLUG).map(([k,v]) => [v,k])
+);
