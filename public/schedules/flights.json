@@ -1,3 +1,0 @@
-{
-  "note": "Flights are fetched live from AeroDataBox via RapidAPI using /api/flights. Configure env var AERODATABOX_RAPIDAPI_KEY on Netlify."
-}
