@@ -1,24 +1,33 @@
 import Head from 'next/head';
-import CountrySelect from '@/components/CountrySelect';
+import dynamic from 'next/dynamic';
 import NewsList from '@/components/NewsList';
+import CountrySwitcher from '@/components/CountrySwitcher';
+import WeatherStage from '@/components/WeatherStage';
+import SportsTicker from '@/components/SportsTicker';
+import HurricaneTracker from '@/components/HurricaneTracker';
+import IslandFerriesPanel from '@/components/IslandFerriesPanel';
+import IslandMoviesPanel from '@/components/IslandMoviesPanel';
 
-type Item = { title:string; link:string; source?:string };
-
-export default function Home({ items }: { items: Item[] }){
+export default function Home(){
   return (
     <>
-      <Head><title>CaribPulse — Caribbean Headlines</title></Head>
-      <CountrySelect initialCode="REGION" />
-      <main className="container">
-        <NewsList title="Top Stories (Regional)" items={items} />
-      </main>
+      <Head>
+        <title>Magnetide — Caribbean Headlines</title>
+        <meta name="description" content="Magnetide — magnetic Caribbean news, sports, and business. Stay pulled into the flow." />
+      </Head>
+
+      {/* Top bar country switcher (or keep your existing) */}
+      <CountrySwitcher />
+
+      {/* Regional news with images */}
+      <NewsList island={undefined} />
+
+      {/* Your widgets */}
+      <section className="section"><WeatherStage /></section>
+      <section className="section"><SportsTicker /></section>
+      <section className="section"><HurricaneTracker /></section>
+      <section className="section"><IslandFerriesPanel /></section>
+      <section className="section"><IslandMoviesPanel /></section>
     </>
   );
-}
-
-export async function getServerSideProps({ req }:{ req: any }){
-  const origin = `${req.headers['x-forwarded-proto'] || 'http'}://${req.headers.host}`;
-  const r = await fetch(`${origin}/api/news`);
-  const json = await r.json();
-  return { props: { items: json.items || [] } };
 }
