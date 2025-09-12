@@ -1,110 +1,99 @@
-import { useRouter } from 'next/router';
-import { useMemo, useState } from 'react';
-import dynamic from 'next/dynamic';
-import { ISLANDS } from '../../lib/islands';
-import NewsList from '../../components/NewsList';
+import { GetStaticPaths, GetStaticProps } from "next";
+import { useState } from "react";
 
-const WeatherStage = dynamic(() => import('../../components/WeatherStage'), { ssr: false });
-const HurricaneTracker = dynamic(() => import('../../components/HurricaneTracker'), { ssr: false });
-const IslandFerriesPanel = dynamic(() => import('../../components/IslandFerriesPanel'), { ssr: false });
-const IslandMoviesPanel = dynamic(() => import('../../components/IslandMoviesPanel'), { ssr: false });
-const SportsTicker = dynamic(() => import('../../components/SportsTicker'), { ssr: false });
-import CountrySwitcher from '../../components/CountrySwitcher';
+interface Island {
+  slug: string;
+  name: string;
+  description: string;
+}
 
-export default function IslandHub() {
-  const router = useRouter();
-  const slug = (router.query.slug as string) || '';
-  const island = useMemo(() => ISLANDS.find(i => i.slug === slug), [slug]);
-  const [tab, setTab] = useState<'weather'|'news'|'ferries'|'hurricanes'>('weather');
+interface IslandPageProps {
+  island: Island;
+}
 
-  if (!island) return <div className="muted">Island not found.</div>;
+export default function IslandPage({ island }: IslandPageProps) {
+  const [tab, setTab] = useState<"weather" | "services">("weather");
 
   return (
-    <div>
-      <div className="card" style={{ marginBottom: 12, display:'flex', alignItems:'center', gap:12, flexWrap:'wrap' }}>
-        <h3 style={{ margin: 0 }}>{island.name}</h3>
-        <div className="muted small">{island.country}</div>
-        <div style={{ marginLeft:'auto', display:'flex', gap:8, flexWrap:'wrap' }}>
-          <button className={tab==='weather'?'tab active':'tab'} onClick={()=>setTab('weather')
-      <section classNameassName="card" style={{marginTop:12}}>
-        <h4 style={{margin:'0 0 8px'}}>Local Services</h4>
-        <div className="muted small" style={{marginBottom:8}}>Auto-detected for {island.name}</div>
-        <div className="row" style={{gap:12}}>
-          <div className="col">
-            <h5 style={{margin:'0 0 6px'}}>Ferries</h5>
-            <IslandFerriesPanel islandName={island.name} />
-          </div>
-          <div className="col">
-            <h5 style={{margin:'0 0 6px'}}>Movies</h5>
-            <IslandMoviesPanel islandName={island.country || island.name} />
-          </div>
-        </div>
-      </section>
-    
-      }><span>Weather</span><i className="underline"/></button>
-          <button className={tab==='news'?'tab active':'tab'} onClick={()=>setTab('news')}><span>News</span><i className="underline"/></button>
-          <button className={tab==='ferries'?'tab active':'tab'} onClick={()=>setTab('ferries')}><span>Ferries</span><i className="underline"/></button>
-          <button className={tab==='hurricanes'?'tab active':'tab'} onClick={()=>setTab('hurricanes')}><span>Hurricanes</span><i className="underline"/></button>
-        </div>
+    <div style={{ padding: 20 }}>
+      <h2>{island.name}</h2>
+      <p>{island.description}</p>
+
+      {/* Tab buttons */}
+      <div
+        style={{
+          marginLeft: "auto",
+          display: "flex",
+          gap: 8,
+          flexWrap: "wrap",
+          marginTop: 16,
+        }}
+      >
+        <button
+          className={tab === "weather" ? "tab active" : "tab"}
+          onClick={() => setTab("weather")}
+        >
+          Weather
+        </button>
+        <button
+          className={tab === "services" ? "tab active" : "tab"}
+          onClick={() => setTab("services")}
+        >
+          Services
+        </button>
       </div>
 
-      {tab==='weather' && (
-  <>
-    <WeatherStage
-          point={{ lat: island.lat, lon: island.lon, name: island.name }}
-          hourly={[{ t: Date.now(), temp: 30, wind: 10, rain: 0.5 }]}
-          alerts={[]}
-          storms={[]}
-        />
+      {/* Tab content */}
+      <section className="card" style={{ marginTop: 12 }}>
+        {tab === "weather" && (
+          <>
+            <h4 style={{ margin: "0 0 8px" }}>Weather</h4>
+            <div className="muted small">Auto-detected for {island.name}</div>
+            <div>Weather widget or data goes here…</div>
+          </>
+        )}
 
-    <section className="card" style={{marginTop:12}}>
-      <h4 style={{margin:'0 0 8px'}}>Local Services</h4>
-      <div className="muted small" style={{marginBottom:8}}>Auto-detected for {island.name}</div>
-      <div className="row" style={{gap:12}}>
-        <div className="col">
-          <h5 style={{margin:'0 0 6px'}}>Ferries</h5>
-          <IslandFerriesPanel islandName={island.name} />
-        </div>
-        <div className="col">
-          <h5 style={{margin:'0 0 6px'}}>Movies</h5>
-          <IslandMoviesPanel islandName={island.country || island.name} />
-        </div>
-      </div>
-    </section>
-
-  </>
-)}
-      <section className="card" style={{marginTop:12}}>
-        <h4 style={{margin:'0 0 8px'}}>Local Services</h4>
-        <div className="muted small" style={{marginBottom:8}}>Auto-detected for {island.name}</div>
-        <div className="row" style={{gap:12}}>
-          <div className="col">
-            <h5 style={{margin:'0 0 6px'}}>Ferries</h5>
-            <IslandFerriesPanel islandName={island.name} />
-          </div>
-          <div className="col">
-            <h5 style={{margin:'0 0 6px'}}>Movies</h5>
-            <IslandMoviesPanel islandName={island.country || island.name} />
-          </div>
-        </div>
+        {tab === "services" && (
+          <>
+            <h4 style={{ margin: "0 0 8px" }}>Local Services</h4>
+            <div className="muted small" style={{ marginBottom: 8 }}>
+              Auto-detected for {island.name}
+            </div>
+            <div className="row" style={{ gap: 12 }}>
+              <div className="service">Service 1</div>
+              <div className="service">Service 2</div>
+            </div>
+          </>
+        )}
       </section>
-    }
-
-      {tab==='news' && (
-        <section classNameassName="card">
-          <h4 style={{marginTop:0}}>Latest News: {island.name}</h4>
-          <NewsList island={(island.country || island.name)} />
-        </section>
-      )}
-
-      {tab==='ferries' && <IslandFerriesPanel islandName={island.name} />}
-      {tab==='sports' && (
-        <section classNameassName="card">
-          <h4 style={{marginTop:0}}>Sports in {island.country || island.name}</h4>
-          <SportsTicker country={(island.country || island.name)} />
-        </section>
-      )}
-      {tab==='hurricanes' && <HurricaneTracker lat={island.lat} lon={island.lon} zoom={6} />}
     </div>
   );
 }
+
+/**
+ * Example static paths – replace with your actual island slugs
+ */
+export const getStaticPaths: GetStaticPaths = async () => {
+  return {
+    paths: [{ params: { slug: "st-kitts" } }, { params: { slug: "nevis" } }],
+    fallback: false,
+  };
+};
+
+/**
+ * Example static props – replace with real data fetching
+ */
+export const getStaticProps: GetStaticProps = async ({ params }) => {
+  const slug = params?.slug as string;
+
+  const island: Island = {
+    slug,
+    name: slug.replace("-", " ").toUpperCase(),
+    description: `This is some information about ${slug}.`,
+  };
+
+  return {
+    props: { island },
+  };
+};
+
