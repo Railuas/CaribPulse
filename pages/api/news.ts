@@ -1,200 +1,84 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 
-export const config = { api: { externalResolver: true }, runtime: 'nodejs' };
+type Item = { title: string; link: string; source?: string };
 
-type Item = { title: string; link: string; published: number; image?: string; source?: string };
-type Feed = { source: string; url: string; _items?: Item[] };
-
-import fs from 'fs';
-import path from 'path';
-
-function readFeedsJson(): Record<string, string[]>{
-  try{
-    const filePath = path.join(process.cwd(), 'public', 'feeds.json');
-    const raw = fs.readFileSync(filePath, 'utf-8');
-    return JSON.parse(raw);
-  }catch{
-    return {};
-  }
-}
-
-
-const FEEDS: Feed[] = [
-  { source: 'Loop News Caribbean', url: 'https://www.loopnews.com/feeds/rss/caribbean' },
-  { source: 'Nation News (Barbados)', url: 'https://www.nationnews.com/feed/' },
-  { source: 'Jamaica Gleaner', url: 'https://jamaica-gleaner.com/rss/news' },
-  { source: 'Stabroek News (Guyana)', url: 'https://www.stabroeknews.com/feed/' },
-  { source: 'Antigua News', url: 'https://antigua.news/feed/' },
-  { source: 'Barbados Today', url: 'https://barbadostoday.bb/feed/' },
+// Minimal curated feeds. You can expand these later.
+const REGIONAL_FEEDS: { title:string; url:string; source:string }[] = [
+  { title: 'Loop Caribbean', url: 'https://www.loopnews.com/rss.xml', source:'Loop Caribbean' },
+  { title: 'Caribbean National Weekly', url: 'https://www.caribbeannationalweekly.com/feed/', source:'CNW' },
 ];
 
-function keywordsForIsland(slug?: string){
-  if (!slug) return [];
-  const table: Record<string,string[]> = {
-    'saint-kitts': ['"St. Kitts"','"Saint Kitts"','Basseterre','SKN','Nevis'],
-    'nevis': ['Nevis','Charlestown','"St. Kitts"'],
-    'barbados': ['Barbados','Bridgetown','Bajan'],
-    'antigua': ['Antigua','"St. John’s"','"St Johns"','"Antigua & Barbuda"'],
-    'barbuda': ['Barbuda','Codrington','"Antigua & Barbuda"'],
-    'dominica': ['Dominica','Roseau'],
-    'saint-lucia': ['"Saint Lucia"','"St. Lucia"','Castries'],
-    'trinidad': ['Trinidad','"Port of Spain"','"Trinidad & Tobago"'],
-    'tobago': ['Tobago','Scarborough','"Trinidad & Tobago"'],
-    'saint-vincent': ['"St. Vincent"','"Saint Vincent"','Kingstown','SVG'],
-    'bequia': ['Bequia','"Port Elizabeth"','SVG'],
-    'grenada': ['Grenada','"St. George’s"'],
-    'jamaica': ['Jamaica','Kingston','"Montego Bay"'],
-    'guyana': ['Guyana','Georgetown'],
-    'guadeloupe': ['Guadeloupe','"Pointe-à-Pitre"','"Basse-Terre"'],
-    'martinique': ['Martinique','"Fort-de-France"'],
-    'curacao': ['Curaçao','Curacao','Willemstad'],
-    'aruba': ['Aruba','Oranjestad'],
-    'bvi-tortola': ['Tortola','"British Virgin Islands"','"Road Town"'],
-    'usvi-st-thomas': ['"St. Thomas"','"U.S. Virgin Islands"','"USVI"','"Charlotte Amalie"'],
-    'usvi-st-croix': ['"St. Croix"','USVI','Christiansted'],
-    'usvi-st-john': ['"St. John"','USVI'],
-    'sint-maarten': ['"Sint Maarten"','"St. Maarten"','Philipsburg'],
-    'saint-martin': ['"Saint Martin"','"St. Martin"','Marigot'],
-    'puerto-rico': ['"Puerto Rico"','"San Juan"'],
-  };
-  return table[slug] || [slug.replace(/-/g,' ')];
-}
+const FEEDS_BY_COUNTRY: Record<string, { title:string; url:string; source:string }[]> = {
+  'Jamaica': [
+    { title: 'Gleaner', url: 'https://jamaica-gleaner.com/feed', source: 'Gleaner' },
+    { title: 'Jamaica Observer', url: 'https://www.jamaicaobserver.com/feed/', source: 'Observer' }
+  ],
+  'Trinidad and Tobago': [
+    { title: 'Guardian TT', url: 'https://www.guardian.co.tt/rss', source: 'Guardian TT' },
+  ],
+  'Barbados': [
+    { title: 'NationNews', url: 'https://www.nationnews.com/feed/', source: 'NationNews' },
+    { title: 'Barbados Today', url: 'https://barbadostoday.bb/feed/', source: 'Barbados Today' },
+  ],
+  'Guyana': [
+    { title: 'Stabroek News', url: 'https://www.stabroeknews.com/feed/', source: 'Stabroek' },
+    { title: 'Demerara Waves', url: 'https://demerarawaves.com/feed/', source: 'Demerara Waves' },
+  ],
+  'St. Kitts and Nevis': [
+    { title: 'WINN FM', url: 'https://www.winnmediaskn.com/feed/', source: 'WINN FM' },
+    { title: 'SKN News Source', url: 'https://sknnews.com/feed/', source: 'SKN News' }
+  ],
+  'Dominica': [
+    { title: 'DA Vibes', url: 'https://www.avirtualdominica.com/feed/', source: 'A Virtual Dominica' }
+  ],
+  'Bahamas': [
+    { title: 'The Nassau Guardian', url: 'https://thenassauguardian.com/feed/', source: 'Nassau Guardian' },
+  ],
+  'Haiti': [
+    { title: 'HaitiLibre', url: 'https://www.haitilibre.com/en/rss.xml', source: 'HaitiLibre' }
+  ],
+  'Dominican Republic': [
+    { title: 'Diario Libre', url: 'https://www.diariolibre.com/rss/actualidad.xml', source: 'Diario Libre' }
+  ]
+};
 
-async function fetchText(url: string, timeoutMs = 12000){
-  const ctrl = new AbortController();
-  const t = setTimeout(()=>ctrl.abort(), timeoutMs);
-  try{
-    const res = await fetch(url, {
-      signal: ctrl.signal,
-      cache: 'no-store',
-      redirect: 'follow',
-      headers: {
-        'user-agent': 'CaribePulse/1.0 (+https://caribepulse.netlify.app)',
-        'accept': 'application/rss+xml, application/xml;q=0.9, text/xml;q=0.8, text/html;q=0.7, */*;q=0.5'
-      }
-    });
-    if (!res.ok) throw new Error('Bad status ' + res.status);
-    return await res.text();
-  } finally { clearTimeout(t); }
-}
-
-function pick(tag: string, xml: string){
-  const m = xml.match(new RegExp(`<${tag}[^>]*>([\s\S]*?)<\/${tag}>`, 'i'));
-  return m ? m[1].trim() : '';
-}
-function pickCdata(tag: string, xml: string){
-  const m = xml.match(new RegExp(`<${tag}[^>]*><!\[CDATA\[([\s\S]*?)\]\]><\/${tag}>`, 'i'));
-  return m ? m[1].trim() : '';
-}
-function pickImg(xmlItem: string): string | null {
-  const u =
-    xmlItem.match(/<media:content[^>]*url="(.*?)"/i)?.[1] ||
-    xmlItem.match(/<media:thumbnail[^>]*url="(.*?)"/i)?.[1] ||
-    xmlItem.match(/<enclosure[^>]*url="(.*?)"/i)?.[1] ||
-    null;
-  return u ? u.replace(/&amp;/g,'&') : null;
-}
-
-async function fetchOg(link: string){
-  try{
-    const html = await fetchText(link, 8000);
-    const og = html.match(/<meta[^>]+property=["']og:image["'][^>]+content=["'](.*?)["']/i)?.[1] ||
-               html.match(/<meta[^>]+name=["']twitter:image["'][^>]+content=["'](.*?)["']/i)?.[1] ||
-               '';
-    return og ? og.replace(/&amp;/g,'&') : '';
-  }catch{ return ''; }
-}
-
-async function parseFeed(xml: string){
+function parseRSS(xml: string): Item[] {
   const items: Item[] = [];
-  const parts = xml.split(/<item[\s>]/i).slice(1);
-  for (const part of parts){
-    const title = pickCdata('title', part) || pick('title', part);
-    const link  = pick('link', part) || pick('guid', part);
-    const pub   = pick('pubDate', part);
-    const published = pub ? Date.parse(pub) : Date.now();
-    let image = pickImg(part) || '';
-    if (!image && link) image = await fetchOg(link);
-    if (title && link) items.push({ title, link, published, image });
+  const parts = xml.split(/<item[\s\S]*?>/i);
+  for (let i=1;i<parts.length;i++){
+    const segment = parts[i];
+    const titleMatch = segment.match(/<title>([\s\S]*?)<\/title>/i);
+    const linkMatch = segment.match(/<link>([\s\S]*?)<\/link>/i);
+    if (titleMatch && linkMatch){
+      const title = titleMatch[1].replace(/<!\[CDATA\[|\]\]>/g,'').trim();
+      const link = linkMatch[1].trim();
+      items.push({ title, link });
+    }
   }
   return items;
 }
 
-function googleNewsFeedUrl(query: string){
-  const q = encodeURIComponent(`${query} when:14d`);
-  return `https://news.google.com/rss/search?q=${q}&hl=en&gl=US&ceid=US:en`;
-}
-
 export default async function handler(req: NextApiRequest, res: NextApiResponse){
-  const qParam = (req.query.q as string | undefined)?.toLowerCase().trim();
-  const island = (req.query.island as string | undefined)?.toLowerCase().trim();
-  const debug = 'debug' in req.query;
+  const country = (req.query.country as string) || '';
+  const feeds = country && FEEDS_BY_COUNTRY[country] ? FEEDS_BY_COUNTRY[country] : REGIONAL_FEEDS;
 
   try{
-    const list: Feed[] = [...FEEDS];
-    const kws = keywordsForIsland(island);
-    if (kws.length){
-      list.push({ source: 'Google News', url: googleNewsFeedUrl(kws.join(' OR ')) });
-    } else if (qParam){
-      list.push({ source: 'Google News', url: googleNewsFeedUrl(qParam) });
+    const results: Item[] = [];
+    const resp = await Promise.allSettled(feeds.map(async f => {
+      const r = await fetch(f.url, { headers: { 'user-agent':'CaribPulseBot/1.0' } });
+      const xml = await r.text();
+      const items = parseRSS(xml).slice(0, 12).map(i => ({ ...i, source: f.source }));
+      return items;
+    }));
+    for (const r of resp){
+      if (r.status === 'fulfilled') results.push(...r.value);
     }
-
-    const results: Array<{ ok: boolean; source: string; count?: number; error?: string }> = [];
-    for (const f of list){
-      try{
-        const xml = await fetchText(f.url);
-        const items = await parseFeed(xml);
-        const withSource = items.map(i => ({ ...i, source: f.source }));
-        results.push({ ok:true, source:f.source, count: withSource.length });
-        (f as any)._items = withSource;
-      }catch(e:any){
-        results.push({ ok:false, source:f.source, error: e?.message || 'failed' });
-      }
-    }
-    if (debug) return res.status(200).json({ ok:true, debug: results });
-
-    let merged: Item[] = [];
-    for (const f of list){
-      if ((f as any)._items) merged = merged.concat((f as any)._items);
-    }
-
-    if (island){
-      const kw = kws.map(s => s.toLowerCase());
-      merged = merged.filter(it => kw.some(k => (it.title || '').toLowerCase().includes(k)));
-    }
-
-
-    const feedsJson = readFeedsJson();
-    const islandParam = (req.query.island as string | undefined)?.toLowerCase();
-    if (islandParam){
-      const keys = Object.keys(feedsJson);
-      const match = keys.find(k => k.toLowerCase().includes(islandParam) || islandParam.includes(k.toLowerCase()));
-      if (match){
-        // rebuild FEEDS dynamically: include region + country-specific
-        const urls = [...(feedsJson['region'] || []), ...(feedsJson[match] || [])];
-        merged = [];
-        for (const u of urls){
-          try{
-            const xml = await fetchText(u);
-            const items = await parseFeed(xml);
-            const sourceName = (()=>{
-              try{ const { hostname } = new URL(u); return hostname.replace(/^www\./,''); }catch{ return match; }
-            })();
-            merged.push(...items.map(i => ({ ...i, source: sourceName })));
-          }catch{ /* skip broken feed */ }
-        }
-      }
-    }
-
-    if (qParam) merged = merged.filter(it => (it.title || '').toLowerCase().includes(qParam));
-
-    const uniq = new Map<string, Item>();
-    for (const it of merged) if (!uniq.has(it.link)) uniq.set(it.link, it);
-    const items = Array.from(uniq.values()).sort((a,b)=> b.published - a.published).slice(0, 24);
-
+    // de-dupe by title
+    const seen = new Set<string>();
+    const dedup = results.filter(i => (seen.has(i.title) ? false : (seen.add(i.title), true))).slice(0, 24);
     res.setHeader('Cache-Control', 's-maxage=600, stale-while-revalidate=600');
-    return res.status(200).json({ ok:true, items });
+    res.status(200).json({ ok:true, country: country || 'REGION', items: dedup });
   }catch(e:any){
-    return res.status(200).json({ ok:false, items:[], error: e?.message || 'failed' });
+    res.status(200).json({ ok:false, country: country || 'REGION', items:[], error: e?.message || 'failed' });
   }
 }

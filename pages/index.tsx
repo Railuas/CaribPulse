@@ -1,29 +1,24 @@
-import dynamic from 'next/dynamic';
-import IslandGrid from '../components/IslandGrid';
-import CountryNews from '../components/CountryNews';
+import Head from 'next/head';
+import CountrySelect from '@/components/CountrySelect';
+import NewsList from '@/components/NewsList';
 
-const WeatherStage = dynamic(() => import('../components/WeatherStage'), { ssr: false });
+type Item = { title:string; link:string; source?:string };
 
-export default function Home(){
+export default function Home({ items }: { items: Item[] }){
   return (
-    <div className="row">
-      <section className="card">
-        <h3 style={{marginTop:0}}>Islands</h3>
-        <IslandGrid />
-      </section>
-      <section className="card">
-        <h3 style={{marginTop:0}}>Weather</h3>
-        <WeatherStage
-          point={{ lat:16.25, lon:-61.55, name:'Guadeloupe' }}
-          hourly={[{t:Date.now(), temp:30, wind:12, rain:0.1}]}
-          alerts={[]}
-          storms={[]}
-        />
-      </section>
-      <section className="card">
-        <h3 style={{marginTop:0}}>Latest Caribbean News</h3>
-        <CountryNews />
-      </section>
-    </div>
+    <>
+      <Head><title>CaribPulse — Caribbean Headlines</title></Head>
+      <CountrySelect initialCode="REGION" />
+      <main className="container">
+        <NewsList title="Top Stories (Regional)" items={items} />
+      </main>
+    </>
   );
+}
+
+export async function getServerSideProps({ req }:{ req: any }){
+  const origin = `${req.headers['x-forwarded-proto'] || 'http'}://${req.headers.host}`;
+  const r = await fetch(`${origin}/api/news`);
+  const json = await r.json();
+  return { props: { items: json.items || [] } };
 }

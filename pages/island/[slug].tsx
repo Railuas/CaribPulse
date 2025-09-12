@@ -19,7 +19,6 @@ export default function IslandPage({ island }: IslandPageProps) {
       <h2>{island.name}</h2>
       <p>{island.description}</p>
 
-      {/* Tab buttons */}
       <div
         style={{
           marginLeft: "auto",
@@ -43,7 +42,6 @@ export default function IslandPage({ island }: IslandPageProps) {
         </button>
       </div>
 
-      {/* Tab content */}
       <section className="card" style={{ marginTop: 12 }}>
         {tab === "weather" && (
           <>
@@ -70,9 +68,6 @@ export default function IslandPage({ island }: IslandPageProps) {
   );
 }
 
-/**
- * Example static paths – replace with your actual island slugs
- */
 export const getStaticPaths: GetStaticPaths = async () => {
   return {
     paths: [{ params: { slug: "st-kitts" } }, { params: { slug: "nevis" } }],
@@ -80,9 +75,6 @@ export const getStaticPaths: GetStaticPaths = async () => {
   };
 };
 
-/**
- * Example static props – replace with real data fetching
- */
 export const getStaticProps: GetStaticProps = async ({ params }) => {
   const slug = params?.slug as string;
 
@@ -96,4 +88,3 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
     props: { island },
   };
 };
-
