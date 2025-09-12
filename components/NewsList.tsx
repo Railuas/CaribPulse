@@ -6,6 +6,23 @@ type Props =
   | { items: Item[]; title: string; island?: never }
   | { island?: string; title?: string; items?: never };
 
+function decodeEntities(s: string){
+  if (!s) return s;
+  // browser-safe decode using textarea
+  if (typeof window !== 'undefined'){
+    const el = document.createElement('textarea');
+    el.innerHTML = s;
+    return el.value;
+  }
+  // fallback (node) – strip common patterns
+  return s.replace(/&#(\d+);/g, (_,n)=> String.fromCharCode(parseInt(n,10)))
+          .replace(/&amp;/g, '&')
+          .replace(/&quot;/g, '"')
+          .replace(/&apos;/g, "'")
+          .replace(/&lt;/g, '<')
+          .replace(/&gt;/g, '>');
+}
+
 export default function NewsList(props: Props) {
   const [loading, setLoading] = useState(false);
   const [fetched, setFetched] = useState<Item[] | null>(null);
@@ -61,22 +78,20 @@ export default function NewsList(props: Props) {
   return (
     <section className="section">
       <h2 className="section-title">{title}</h2>
-      <div className="grid">
+      <div className="grid news-grid">
         {items.map((n, i) => (
-          <article className="card" key={i} style={{ display:'grid', gridTemplateColumns:'120px 1fr', gap:12, alignItems:'start' }}>
-            <a href={n.link} target="_blank" rel="noreferrer" style={{ display:'contents' }}>
-              <div style={{ width:120, height:80, borderRadius:10, overflow:'hidden', background:'rgba(255,255,255,.06)', border:'1px solid rgba(255,255,255,.08)' }}>
+          <article className="card news-card" key={i}>
+            <a href={n.link} target="_blank" rel="noreferrer">
+              <div className="thumb">
                 {n.image ? (
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img src={n.image} alt="" style={{ width:'100%', height:'100%', objectFit:'cover', display:'block' }} />
+                  <img src={n.image} alt="" />
                 ) : (
-                  <div style={{ width:'100%', height:'100%' }} />
+                  <div className="fallback" />
                 )}
               </div>
-              <div>
-                <h3 className="card-title" style={{ margin:'0 0 6px' }}>{n.title}</h3>
-                {n.source && <div className="muted small">{n.source}</div>}
-              </div>
+              <h3 className="card-title" style={{ margin:'10px 0 6px' }}>{decodeEntities(n.title)}</h3>
+              {n.source && <div className="muted small">{n.source}</div>}
             </a>
           </article>
         ))}
