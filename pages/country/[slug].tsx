@@ -4,7 +4,6 @@ import CountrySwitcher from '@/components/CountrySwitcher';
 import NewsList from '@/components/NewsList';
 import { SLUG_TO_COUNTRY } from '@/lib/countryMap';
 
-// Client-only widgets
 const WeatherStage = dynamic(() => import('@/components/WeatherStage'), { ssr: false });
 const SportsTicker = dynamic(() => import('@/components/SportsTicker'), { ssr: false });
 const HurricaneTracker = dynamic(() => import('@/components/HurricaneTracker'), { ssr: false });
@@ -18,13 +17,8 @@ export default function CountryPage({ countryName }:{ countryName:string }){
         <title>Top Stories — {countryName} | Magnetide</title>
         <meta name="description" content={`Latest headlines in ${countryName} — news, sports, weather, ferries, and movies on Magnetide.`} />
       </Head>
-
       <CountrySwitcher />
-
-      {/* Country-specific news with images */}
       <NewsList island={countryName} />
-
-      {/* Widgets (no custom props — keep original signatures) */}
       <section className="section"><WeatherStage /></section>
       <section className="section"><SportsTicker /></section>
       <section className="section"><HurricaneTracker /></section>

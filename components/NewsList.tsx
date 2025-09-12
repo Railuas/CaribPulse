@@ -65,12 +65,8 @@ export default function NewsList(props: Props) {
         {items.map((n, i) => (
           <article className="card" key={i} style={{ display:'grid', gridTemplateColumns:'120px 1fr', gap:12, alignItems:'start' }}>
             <a href={n.link} target="_blank" rel="noreferrer" style={{ display:'contents' }}>
-              <div style={{
-                width:120, height:80, borderRadius:10, overflow:'hidden',
-                background:'rgba(255,255,255,.06)', border:'1px solid rgba(255,255,255,.08)'
-              }}>
+              <div style={{ width:120, height:80, borderRadius:10, overflow:'hidden', background:'rgba(255,255,255,.06)', border:'1px solid rgba(255,255,255,.08)' }}>
                 {n.image ? (
-                  // eslint-disable-next-line @next/next/no-img-element
                   <img src={n.image} alt="" style={{ width:'100%', height:'100%', objectFit:'cover', display:'block' }} />
                 ) : (
                   <div style={{ width:'100%', height:'100%' }} />
