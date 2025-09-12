@@ -1,29 +1,38 @@
 import Head from 'next/head';
-import CountrySelect from '@/components/CountrySelect';
+import CountrySwitcher from '@/components/CountrySwitcher';
 import NewsList from '@/components/NewsList';
+import WeatherStage from '@/components/WeatherStage';
+import SportsTicker from '@/components/SportsTicker';
+import HurricaneTracker from '@/components/HurricaneTracker';
+import IslandFerriesPanel from '@/components/IslandFerriesPanel';
+import IslandMoviesPanel from '@/components/IslandMoviesPanel';
 import { SLUG_TO_COUNTRY } from '@/lib/countryMap';
 
-type Item = { title:string; link:string; source?:string };
-
-export default function CountryPage({ items, title }: { items: Item[]; title: string }){
+export default function CountryPage({ countryName }:{ countryName:string }){
   return (
     <>
-      <Head><title>{title}</title></Head>
-      <CountrySelect initialCode="REGION" />
-      <main className="container">
-        <NewsList title={title} items={items} />
-      </main>
+      <Head>
+        <title>Top Stories — {countryName} | Magnetide</title>
+        <meta name="description" content={`Latest headlines in ${countryName} — Magnetide.`} />
+      </Head>
+
+      <CountrySwitcher />
+
+      {/* Country-specific news with images */}
+      <NewsList island={countryName} />
+
+      {/* If your widgets accept a country prop, pass it; otherwise just render */}
+      <section className="section"><WeatherStage country={countryName} /></section>
+      <section className="section"><SportsTicker country={countryName} /></section>
+      <section className="section"><HurricaneTracker country={countryName} /></section>
+      <section className="section"><IslandFerriesPanel country={countryName} /></section>
+      <section className="section"><IslandMoviesPanel country={countryName} /></section>
     </>
   );
 }
 
-export async function getServerSideProps({ params, req }:{ params:{ slug:string }, req:any }){
+export async function getServerSideProps({ params }:{ params:{ slug:string } }){
   const slug = params.slug;
-  const country = SLUG_TO_COUNTRY[slug] || '';
-  const origin = `${req.headers['x-forwarded-proto'] || 'http'}://${req.headers.host}`;
-  const url = country ? `${origin}/api/news?country=${encodeURIComponent(country)}` : `${origin}/api/news`;
-  const r = await fetch(url);
-  const json = await r.json();
-  const title = country ? `Top Stories — ${country}` : 'Top Stories';
-  return { props: { items: json.items || [], title } };
+  const countryName = SLUG_TO_COUNTRY[slug] || 'All Caribbean';
+  return { props: { countryName } };
 }
