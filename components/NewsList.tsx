@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import Link from 'next/link';
 
 type Item = { title: string; link: string; source?: string; image?: string };
 
@@ -8,13 +9,11 @@ type Props =
 
 function decodeEntities(s: string){
   if (!s) return s;
-  // browser-safe decode using textarea
   if (typeof window !== 'undefined'){
     const el = document.createElement('textarea');
     el.innerHTML = s;
     return el.value;
   }
-  // fallback (node) – strip common patterns
   return s.replace(/&#(\d+);/g, (_,n)=> String.fromCharCode(parseInt(n,10)))
           .replace(/&amp;/g, '&')
           .replace(/&quot;/g, '"')
@@ -79,22 +78,25 @@ export default function NewsList(props: Props) {
     <section className="section">
       <h2 className="section-title">{title}</h2>
       <div className="grid news-grid">
-        {items.map((n, i) => (
-          <article className="card news-card" key={i}>
-            <a href={n.link} target="_blank" rel="noreferrer">
-              <div className="thumb">
-                {n.image ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={n.image} alt="" />
-                ) : (
-                  <div className="fallback" />
-                )}
-              </div>
-              <h3 className="card-title" style={{ margin:'10px 0 6px' }}>{decodeEntities(n.title)}</h3>
-              {n.source && <div className="muted small">{n.source}</div>}
-            </a>
-          </article>
-        ))}
+        {items.map((n, i) => {
+          const href = `/read?url=${encodeURIComponent(n.link)}${n.source ? `&source=${encodeURIComponent(n.source)}` : ''}`;
+          return (
+            <article className="card news-card" key={i}>
+              <Link href={href}>
+                <div className="thumb">
+                  {n.image ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={n.image} alt="" />
+                  ) : (
+                    <div className="fallback" />
+                  )}
+                </div>
+                <h3 className="card-title" style={{ margin:'10px 0 6px' }}>{decodeEntities(n.title)}</h3>
+                {n.source && <div className="muted small">{n.source}</div>}
+              </Link>
+            </article>
+          );
+        })}
       </div>
     </section>
   );
