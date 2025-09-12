@@ -1,4 +1,4 @@
-
+cat > pages/island/[slug].tsx <<'TSX'
 import { useRouter } from 'next/router';
 import { useMemo, useState } from 'react';
 import dynamic from 'next/dynamic';
@@ -77,4 +77,8 @@ export default function IslandHub() {
     </div>
   );
 }
+TSX
 
+git add pages/island/\[slug\].tsx
+git commit -m "Replace island page with clean TSX"
+git push
