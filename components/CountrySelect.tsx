@@ -48,7 +48,7 @@ export default function CountrySelect({ initialCode = "REGION" }: { initialCode?
   return (
     <div className="topbar">
       <div className="topbar-inner">
-        <div className="brand">CaribPulse</div>
+        <div className="brand">Magnetide</div>
         <label className="select-wrap">
           <span className="select-label">Country</span>
           <select className="select" value={value} onChange={e=>onChange(e.target.value)}>
