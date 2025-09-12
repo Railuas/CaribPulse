@@ -1,1 +1,8 @@
-export default function IslandFerriesPanel(){return (<div className='card'><h3 className='card-title'>Ferries</h3><div className='muted small'>Ferry schedule placeholder</div></div>);}
+export default function IslandFerriesPanel(){
+  return (
+    <div className="card">
+      <h3 className="card-title">Ferries</h3>
+      <div className="muted small">Ferry schedule placeholder</div>
+    </div>
+  );
+}

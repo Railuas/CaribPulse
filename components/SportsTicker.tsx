@@ -1,1 +1,8 @@
-export default function SportsTicker(){return (<div className='card'><h3 className='card-title'>Sports</h3><div className='muted small'>Sports ticker placeholder</div></div>);}
+export default function SportsTicker(){
+  return (
+    <div className="card">
+      <h3 className="card-title">Sports</h3>
+      <div className="muted small">Sports ticker placeholder</div>
+    </div>
+  );
+}

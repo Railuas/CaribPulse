@@ -17,8 +17,13 @@ export default function CountryPage({ countryName }:{ countryName:string }){
         <title>Top Stories — {countryName} | Magnetide</title>
         <meta name="description" content={`Latest headlines in ${countryName} — news, sports, weather, ferries, and movies on Magnetide.`} />
       </Head>
+
       <CountrySwitcher />
+
+      {/* Country-specific news */}
       <NewsList island={countryName} />
+
+      {/* Widgets (no extra props, same as home) */}
       <section className="section"><WeatherStage /></section>
       <section className="section"><SportsTicker /></section>
       <section className="section"><HurricaneTracker /></section>

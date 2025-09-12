@@ -1,1 +1,8 @@
-export default function HurricaneTracker(){return (<div className='card'><h3 className='card-title'>Hurricane Tracker</h3><div className='muted small'>Hurricane tracker placeholder</div></div>);}
+export default function HurricaneTracker(){
+  return (
+    <div className="card">
+      <h3 className="card-title">Hurricane Tracker</h3>
+      <div className="muted small">Hurricane tracker placeholder</div>
+    </div>
+  );
+}
