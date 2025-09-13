@@ -11,46 +11,60 @@ type FerryRoute = {
 };
 
 const FERRIES: FerryRoute[] = [
-  { route:'Nassau ↔ Harbour Island', operator:'Bahamas Ferries', country:'Bahamas', website:'https://www.bahamasferries.com/' },
-  { route:'Nassau ↔ Spanish Wells', operator:'Bahamas Ferries', country:'Bahamas', website:'https://www.bahamasferries.com/' },
-  { route:'Nassau ↔ Andros (Fresh Creek / Morgans Bluff)', operator:'Bahamas Ferries', country:'Bahamas', website:'https://www.bahamasferries.com/' },
-  { route:'Nassau ↔ Exuma (George Town)', operator:'Bahamas Ferries', country:'Bahamas', website:'https://www.bahamasferries.com/' },
-  { route:'Fort Lauderdale (USA) ↔ Bimini / Freeport', operator:'Baleària Caribbean', country:'Bahamas', website:'https://www.baleariacaribbean.com/' },
+  // Bahamas
+  { route: 'Nassau ↔ Harbour Island', operator: 'Bahamas Ferries', country: 'Bahamas', website: 'https://www.bahamasferries.com/' },
+  { route: 'Nassau ↔ Spanish Wells', operator: 'Bahamas Ferries', country: 'Bahamas', website: 'https://www.bahamasferries.com/' },
+  { route: 'Nassau ↔ Andros (Fresh Creek / Morgans Bluff)', operator: 'Bahamas Ferries', country: 'Bahamas', website: 'https://www.bahamasferries.com/' },
+  { route: 'Nassau ↔ Exuma (George Town)', operator: 'Bahamas Ferries', country: 'Bahamas', website: 'https://www.bahamasferries.com/' },
+  { route: 'Fort Lauderdale (USA) ↔ Bimini / Freeport', operator: 'Balearia Caribbean', country: 'Bahamas', website: 'https://www.baleariacaribbean.com/' },
 
-  { route:'Kingston Harbour (tours)', operator:'Local Operators / JUTA', country:'Jamaica', notes:'Seasonal / tours' },
+  // Jamaica
+  { route: 'Kingston Harbour (tours)', operator: 'Local Operators / JUTA', country: 'Jamaica', notes: 'Seasonal / tours' },
 
-  { route:'Port of Spain (Trinidad) ↔ Scarborough (Tobago)', operator:'TTIT', country:'Trinidad and Tobago', website:'https://www.ttit.gov.tt/' },
+  // Trinidad & Tobago
+  { route: 'Port of Spain (Trinidad) ↔ Scarborough (Tobago)', operator: 'TTIT (Trinidad & Tobago Inter-Island Transportation Co.)', country: 'Trinidad and Tobago', website: 'https://www.ttit.gov.tt/' },
 
-  { route:'Basseterre (St. Kitts) ↔ Charlestown (Nevis)', operator:'Sea Bridge / MV Mark Twain / Caribe Breeze', country:'St. Kitts and Nevis', notes:'Frequent day service' },
+  // Saint Kitts & Nevis
+  { route: 'Basseterre (St. Kitts) ↔ Charlestown (Nevis)', operator: 'Sea Bridge / MV Mark Twain / Caribe Breeze', country: 'St. Kitts and Nevis', notes: 'Frequent day service' },
 
-  { route:'Antigua ↔ Barbuda', operator:'Barbuda Express', country:'Antigua and Barbuda', website:'https://www.barbudaexpress.com/' },
+  // Antigua & Barbuda
+  { route: 'Antigua ↔ Barbuda', operator: 'Barbuda Express', country: 'Antigua and Barbuda', website: 'https://www.barbudaexpress.com/' },
 
-  { route:'Roseau ↔ Fort-de-France ↔ Pointe-à-Pitre', operator:\"L'Express des Îles\", country:'Dominica', website:'https://www.express-des-iles.com/' },
-  { route:'Castries ↔ Fort-de-France', operator:\"L'Express des Îles\", country:'Saint Lucia', website:'https://www.express-des-iles.com/' },
+  // French Antilles network
+  { route: 'Roseau ↔ Fort-de-France ↔ Pointe-a-Pitre', operator: "L'Express des Iles", country: 'Dominica', website: 'https://www.express-des-iles.com/' },
+  { route: 'Castries ↔ Fort-de-France', operator: "L'Express des Iles", country: 'Saint Lucia', website: 'https://www.express-des-iles.com/' },
 
-  { route:'Kingstown ↔ Bequia', operator:'Bequia Express', country:'Saint Vincent and the Grenadines' },
-  { route:'Kingstown ↔ Bequia', operator:'Admiralty Transport', country:'Saint Vincent and the Grenadines' },
-  { route:'Kingstown ↔ Canouan / Union Island', operator:'Various (inter-island)', country:'Saint Vincent and the Grenadines', notes:'Multiple daily services' },
+  // Saint Vincent and the Grenadines
+  { route: 'Kingstown ↔ Bequia', operator: 'Bequia Express', country: 'Saint Vincent and the Grenadines' },
+  { route: 'Kingstown ↔ Bequia', operator: 'Admiralty Transport', country: 'Saint Vincent and the Grenadines' },
+  { route: 'Kingstown ↔ Canouan / Union Island', operator: 'Various (inter-island)', country: 'Saint Vincent and the Grenadines', notes: 'Multiple daily services' },
 
-  { route:\"St. George's ↔ Hillsborough (Carriacou)\", operator:'Osprey Lines', country:'Grenada', website:'https://www.osprey.com.gd/' },
+  // Grenada / Carriacou
+  { route: "St. George's ↔ Hillsborough (Carriacou)", operator: 'Osprey Lines', country: 'Grenada', website: 'https://www.osprey.com.gd/' },
 
-  { route:'Santo Domingo (DR) ↔ San Juan (PR)', operator:'Ferries del Caribe', country:'Dominican Republic', website:'https://www.ferriesdelcaribe.com/' },
+  // Dominican Republic <-> Puerto Rico
+  { route: 'Santo Domingo (DR) ↔ San Juan (PR)', operator: 'Ferries del Caribe', country: 'Dominican Republic', website: 'https://www.ferriesdelcaribe.com/' },
 
-  { route:'Ceiba ↔ Culebra', operator:'Puerto Rico Ferry (ATM/HSI)', country:'Puerto Rico', website:'https://www.puertoricoferry.com/' },
-  { route:'Ceiba ↔ Vieques', operator:'Puerto Rico Ferry (ATM/HSI)', country:'Puerto Rico', website:'https://www.puertoricoferry.com/' },
+  // Puerto Rico main island
+  { route: 'Ceiba ↔ Culebra', operator: 'Puerto Rico Ferry (ATM/HSI)', country: 'Puerto Rico', website: 'https://www.puertoricoferry.com/' },
+  { route: 'Ceiba ↔ Vieques', operator: 'Puerto Rico Ferry (ATM/HSI)', country: 'Puerto Rico', website: 'https://www.puertoricoferry.com/' },
 
-  { route:'St. Thomas (Charlotte Amalie) ↔ Tortola (Road Town)', operator:'Road Town Fast Ferry', country:'British Virgin Islands', website:'https://www.roadtownfastferry.com/' },
-  { route:'St. Thomas (Red Hook) ↔ Tortola (West End/Road Town)', operator:'Native Son / Road Town Fast Ferry', country:'British Virgin Islands', website:'https://www.nativesonferry.com/' },
-  { route:'St. Thomas (Red Hook) ↔ St. John (Cruz Bay)', operator:'Varlack Ventures / Transportation Services of St. John', country:'U.S. Virgin Islands' },
+  // USVI & BVI
+  { route: 'St. Thomas (Charlotte Amalie) ↔ Tortola (Road Town)', operator: 'Road Town Fast Ferry', country: 'British Virgin Islands', website: 'https://www.roadtownfastferry.com/' },
+  { route: 'St. Thomas (Red Hook) ↔ Tortola (West End/Road Town)', operator: 'Native Son / Road Town Fast Ferry', country: 'British Virgin Islands', website: 'https://www.nativesonferry.com/' },
+  { route: 'St. Thomas (Red Hook) ↔ St. John (Cruz Bay)', operator: 'Varlack Ventures / Transportation Services of St. John', country: 'U.S. Virgin Islands' },
 
-  { route:'Philipsburg ↔ St. Barts (Gustavia)', operator:'Great Bay Express', country:'Sint Maarten', website:'https://www.greatbayferry.com/' },
-  { route:'Marigot ↔ St. Barts (Gustavia)', operator:'Voyager', country:'Saint Martin', website:'https://www.voy12.com/' },
-  { route:'SXM ↔ Saba / St. Eustatius', operator:'Makana Ferry', country:'Sint Maarten', website:'https://bluesandbluesltd.com/makana-ferry/' },
+  // St. Maarten / St. Martin region
+  { route: 'Philipsburg ↔ St. Barts (Gustavia)', operator: 'Great Bay Express', country: 'Sint Maarten', website: 'https://www.greatbayferry.com/' },
+  { route: 'Marigot ↔ St. Barts (Gustavia)', operator: 'Voyager', country: 'Saint Martin', website: 'https://www.voy12.com/' },
+  { route: 'SXM ↔ Saba / St. Eustatius', operator: 'Makana Ferry', country: 'Sint Maarten', website: 'https://bluesandbluesltd.com/makana-ferry/' },
 
-  { route:'Blowing Point ↔ Marigot', operator:'Public Ferry / Private Operators', country:'Anguilla' },
+  // Anguilla
+  { route: 'Blowing Point ↔ Marigot', operator: 'Public Ferry / Private Operators', country: 'Anguilla' },
 
-  { route:'(Inter-island services are rare / seasonal)', operator:'—', country:'Curaçao', notes:'Check local operators' },
-  { route:'(Limited scheduled ferry services)', operator:'—', country:'Haiti', notes:'Check local operators' },
+  // ABC / Haiti (limited or seasonal)
+  { route: '(Inter-island services are rare / seasonal)', operator: '-', country: 'Curaçao', notes: 'Check local operators' },
+  { route: '(Limited scheduled ferry services)', operator: '-', country: 'Haiti', notes: 'Check local operators' },
 ];
 
 function byCountry(country?: string){
@@ -62,5 +76,5 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const country = (req.query.country as string) || 'All Caribbean';
   const items = byCountry(country);
   res.setHeader('Cache-Control', 's-maxage=3600, stale-while-revalidate=3600');
-  res.status(200).json({ ok:true, country, items });
+  res.status(200).json({ ok: true, country, items });
 }
