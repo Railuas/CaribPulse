@@ -1,65 +1,96 @@
+// lib/moviesMap.ts
+// Fully populated Caribbean Cinemas locations by country.
+// If any URL changes, just tweak that one entry. The Movies API will use this map.
 
-// Caribbean Cinemas locations by country. Edit URLs if site slugs change.
-export const CARIBBEAN_CINEMAS_LOCATIONS: Record<string, { name: string; url: string; city?: string }[]> = {
-  'All Caribbean': [],
+export type CCinemaLoc = { name: string; url: string; city?: string };
 
-  'Trinidad and Tobago': [
-    { name: 'Caribbean Cinemas 8 — Port of Spain', url: 'https://caribbeancinemas.com/port-of-spain/' },
-    { name: 'Caribbean Cinemas SouthPark — San Fernando', url: 'https://caribbeancinemas.com/southpark/' },
-    { name: 'Caribbean Cinemas — Chaguanas', url: 'https://caribbeancinemas.com/chaguanas/' },
+export const CARIBBEAN_CINEMAS_LOCATIONS: Record<string, CCinemaLoc[]> = {
+  "All Caribbean": [],
+
+  // ==================== Puerto Rico ====================
+  "Puerto Rico": [
+    { name: "San Patricio VIP — Guaynabo", url: "https://caribbeancinemas.com/sanpatriciovip/" },
+    { name: "Montehiedra — San Juan", url: "https://caribbeancinemas.com/montehiedra/" },
+    { name: "Plaza Las Américas — San Juan", url: "https://caribbeancinemas.com/plazalasamericas/" },
+    { name: "Carolina", url: "https://caribbeancinemas.com/carolina/" },
+    { name: "Bayamón", url: "https://caribbeancinemas.com/bayamon/" },
+    { name: "Western Plaza — Mayagüez", url: "https://caribbeancinemas.com/westernplaza/" },
+    { name: "Mayagüez Town Center", url: "https://caribbeancinemas.com/mayaguez/" },
+    { name: "Ponce — Plaza Del Caribe", url: "https://caribbeancinemas.com/ponce/" },
+    { name: "Fajardo", url: "https://caribbeancinemas.com/fajardo/" },
+    { name: "Caguas", url: "https://caribbeancinemas.com/caguas/" },
+    { name: "Añasco", url: "https://caribbeancinemas.com/anasco/" },
+    { name: "Arecibo", url: "https://caribbeancinemas.com/arecibo/" },
+    { name: "San Germán", url: "https://caribbeancinemas.com/sangerman/" },
+    { name: "Las Piedras", url: "https://caribbeancinemas.com/laspiedras/" },
+    { name: "Vega Alta", url: "https://caribbeancinemas.com/vegaalta/" },
+    { name: "Plaza Guaynabo", url: "https://caribbeancinemas.com/plazaguaynabo/" }
   ],
 
-  'Jamaica': [
-    { name: 'Caribbean Cinemas — Sunshine Palace (Kingston)', url: 'https://caribbeancinemas.com/sunshinepalace/' },
-    { name: 'Caribbean Cinemas — Portmore', url: 'https://caribbeancinemas.com/portmore/' },
-    { name: 'Caribbean Cinemas — Montego Bay', url: 'https://caribbeancinemas.com/montegobay/' },
+  // ==================== Dominican Republic ====================
+  "Dominican Republic": [
+    { name: "Downtown Center — Santo Domingo", url: "https://caribbeancinemas.com/downtowncenter/" },
+    { name: "Acropolis — Santo Domingo", url: "https://caribbeancinemas.com/acropolis/" },
+    { name: "Galería 360 — Santo Domingo", url: "https://caribbeancinemas.com/galeria360/" },
+    { name: "Silver Sun — Santo Domingo", url: "https://caribbeancinemas.com/silversun/" },
+    { name: "Sambil — Santo Domingo", url: "https://caribbeancinemas.com/sambilsd/" },
+    { name: "Colinas Mall — Santiago", url: "https://caribbeancinemas.com/colinasmall/" },
+    { name: "Bella Terra Mall — Santiago", url: "https://caribbeancinemas.com/bellaterra/" },
+    { name: "Megaplex 10 — Santiago", url: "https://caribbeancinemas.com/megaplex10/" },
+    { name: "Puerto Plata", url: "https://caribbeancinemas.com/puertoplata/" },
+    { name: "La Romana", url: "https://caribbeancinemas.com/laromana/" },
+    { name: "Downtown Punta Cana", url: "https://caribbeancinemas.com/puntacana/" }
   ],
 
-  'Barbados': [
-    { name: 'Caribbean Cinemas — Wildey', url: 'https://caribbeancinemas.com/wildey/' },
+  // ==================== Trinidad & Tobago ====================
+  "Trinidad and Tobago": [
+    { name: "Port of Spain 8", url: "https://caribbeancinemas.com/port-of-spain/" },
+    { name: "SouthPark — San Fernando", url: "https://caribbeancinemas.com/southpark/" },
+    { name: "Chaguanas", url: "https://caribbeancinemas.com/chaguanas/" }
   ],
 
-  'Bahamas': [
-    { name: 'Caribbean Cinemas — Nassau', url: 'https://caribbeancinemas.com/nassau/' },
+  // ==================== Jamaica ====================
+  "Jamaica": [
+    { name: "Sunshine Palace — Kingston", url: "https://caribbeancinemas.com/sunshinepalace/" },
+    { name: "Portmore", url: "https://caribbeancinemas.com/portmore/" },
+    { name: "Montego Bay", url: "https://caribbeancinemas.com/montegobay/" }
   ],
 
-  'Puerto Rico': [
-    { name: 'Caribbean Cinemas — San Juan', url: 'https://caribbeancinemas.com/sanjuan/' },
-    { name: 'Caribbean Cinemas — Plaza Las Américas', url: 'https://caribbeancinemas.com/plazalasamericas/' },
-    { name: 'Caribbean Cinemas — Bayamón', url: 'https://caribbeancinemas.com/bayamon/' },
-    { name: 'Caribbean Cinemas — Carolina', url: 'https://caribbeancinemas.com/carolina/' },
-    { name: 'Caribbean Cinemas — Mayagüez', url: 'https://caribbeancinemas.com/mayaguez/' },
-    { name: 'Caribbean Cinemas — Ponce', url: 'https://caribbeancinemas.com/ponce/' },
+  // ==================== Barbados ====================
+  "Barbados": [
+    { name: "Wildey", url: "https://caribbeancinemas.com/wildey/" }
   ],
 
-  'Dominican Republic': [
-    { name: 'Caribbean Cinemas — Downtown Center (Santo Domingo)', url: 'https://caribbeancinemas.com/downtowncenter/' },
-    { name: 'Caribbean Cinemas — Acropolis', url: 'https://caribbeancinemas.com/acropolis/' },
-    { name: 'Caribbean Cinemas — Galería 360', url: 'https://caribbeancinemas.com/galeria360/' },
-    { name: 'Caribbean Cinemas — Megaplex 10 (Santiago)', url: 'https://caribbeancinemas.com/megaplex10/' },
-    { name: 'Caribbean Cinemas — Bella Terra', url: 'https://caribbeancinemas.com/bellaterra/' },
+  // ==================== Bahamas ====================
+  "Bahamas": [
+    { name: "Nassau", url: "https://caribbeancinemas.com/nassau/" }
   ],
 
-  'Sint Maarten': [
-    { name: 'Caribbean Cinemas — St. Maarten', url: 'https://caribbeancinemas.com/stmaarten/' },
-  ],
-  'Saint Martin': [
-    { name: 'Caribbean Cinemas — Marigot', url: 'https://caribbeancinemas.com/marigot/' },
+  // ==================== Antigua & Barbuda ====================
+  "Antigua and Barbuda": [
+    { name: "Antigua Megaplex 8 — St. John's", url: "https://caribbeancinemas.com/antigua/" }
   ],
 
-  'Saint Lucia': [
-    { name: 'Caribbean Cinemas — Castries', url: 'https://caribbeancinemas.com/castries/' },
+  // ==================== Sint Maarten / Saint Martin ====================
+  "Sint Maarten": [
+    { name: "St. Maarten Megaplex 7", url: "https://caribbeancinemas.com/stmaarten/" }
+  ],
+  "Saint Martin": [
+    { name: "Marigot", url: "https://caribbeancinemas.com/marigot/" }
   ],
 
-  'Curaçao': [
-    { name: 'Caribbean Cinemas — Curaçao', url: 'https://caribbeancinemas.com/curacao/' },
+  // ==================== Saint Lucia ====================
+  "Saint Lucia": [
+    { name: "Castries", url: "https://caribbeancinemas.com/castries/" }
   ],
 
-  'Antigua and Barbuda': [
-    { name: 'Caribbean Cinemas — St. John’s', url: 'https://caribbeancinemas.com/antigua/' },
+  // ==================== Curaçao ====================
+  "Curaçao": [
+    { name: "Sambil Curaçao", url: "https://caribbeancinemas.com/curacao/" }
   ],
 
-  'Guyana': [
-    { name: 'Caribbean Cinemas — Georgetown', url: 'https://caribbeancinemas.com/georgetown/' },
-  ],
+  // ==================== Guyana ====================
+  "Guyana": [
+    { name: "Georgetown", url: "https://caribbeancinemas.com/georgetown/" }
+  ]
 };
