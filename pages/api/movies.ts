@@ -1,13 +1,18 @@
+
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { CARIBBEAN_CINEMAS_LOCATIONS } from '@/lib/moviesMap';
 
 type Showtime = { title: string; times: string[]; cinema: string; url: string };
 
-function extractTimesBlock(html: string){
-  // Try a few common patterns from Caribbean Cinemas pages
-  const blocks = html.match(/<ul[^>]*class=["'][^"']*(showtimes|times)[^"']*["'][^>]*>[\s\S]*?<\/ul>/gi) || [];
-  const alt = html.match(/<div[^>]*class=["'][^"']*(showtimes|times)[^"']*["'][^>]*>[\s\S]*?<\/div>/gi) || [];
-  return blocks.concat(alt).join('\n');
+function ensureStrings(arr: RegExpMatchArray | null): string[] {
+  if (!arr) return [];
+  return Array.from(arr).map(s => String(s));
+}
+
+function extractTimesBlock(html: string): string{
+  const blocks = ensureStrings(html.match(/<ul[^>]*class=["'][^"']*(showtimes|times)[^"']*["'][^>]*>[\s\S]*?<\/ul>/gi));
+  const alt    = ensureStrings(html.match(/<div[^>]*class=["'][^"']*(showtimes|times)[^"']*["'][^>]*>[\s\S]*?<\/div>/gi));
+  return [...blocks, ...alt].join('\n');
 }
 
 function pickAll(re: RegExp, s: string){ const out: string[] = []; let m: RegExpExecArray | null;
@@ -17,12 +22,12 @@ function decodeHtml(s: string){
   return s.replace(/&amp;/g,'&').replace(/&quot;/g,'"').replace(/&#39;/g,"'").replace(/&lt;/g,'<').replace(/&gt;/g,'>');
 }
 
+function stripTags(s: string){ return s.replace(/<[^>]+>/g,''); }
+
 function extractMovies(html: string, cinemaName: string, url: string): Showtime[] {
   const section = extractTimesBlock(html) || html;
 
-  // Titles: look for h3/h2 with movie names near showtimes
-  const titles = pickAll(/<h[23][^>]*>([\s\S]*?)<\/h[23]>/gi, section).map(decodeHtml);
-  // Times: look like "4:30 PM", "19:10", etc.
+  const titles = pickAll(/<h[23][^>]*>([\s\S]*?)<\/h[23]>/gi, section).map(t => decodeHtml(stripTags(t)));
   const timesPerTitle: string[][] = [];
   const chunks = section.split(/<h[23][^>]*>/i).slice(1);
 
@@ -33,9 +38,9 @@ function extractMovies(html: string, cinemaName: string, url: string): Showtime[
 
   const out: Showtime[] = [];
   for (let i=0;i<titles.length;i++){
-    const t = titles[i].replace(/<[^>]+>/g,'').trim();
+    const t = titles[i]?.trim();
     if (!t) continue;
-    const times = timesPerTitle[i] || [];
+    const times = (timesPerTitle[i] || []).map(x => x.replace(/\s+/g,' ').trim()).filter(Boolean);
     if (times.length === 0) continue;
     out.push({ title: t, times, cinema: cinemaName, url });
   }
@@ -45,25 +50,11 @@ function extractMovies(html: string, cinemaName: string, url: string): Showtime[
 export default async function handler(req: NextApiRequest, res: NextApiResponse){
   const country = (req.query.country as string) || 'All Caribbean';
   const locs = CARIBBEAN_CINEMAS_LOCATIONS[country] || [];
-  if (!locs.length){
-    // If no country match, search across all configured locations
-    const all: Showtime[] = [];
-    const entries = Object.values(CARIBBEAN_CINEMAS_LOCATIONS).flat();
-    const responses = await Promise.allSettled(entries.map(async loc => {
-      const r = await fetch(loc.url, { headers: { 'user-agent': 'MagnetideBot/1.0' } });
-      const html = await r.text();
-      return extractMovies(html, loc.name, loc.url);
-    }));
-    for (const r of responses){
-      if (r.status === 'fulfilled') all.push(...r.value);
-    }
-    const dedup = deduplicate(all);
-    return res.status(200).json({ ok:true, country, items: dedup });
-  }
+  const entries = locs.length ? locs : Object.values(CARIBBEAN_CINEMAS_LOCATIONS).flat();
 
   try{
     const out: Showtime[] = [];
-    const responses = await Promise.allSettled(locs.map(async loc => {
+    const responses = await Promise.allSettled(entries.map(async loc => {
       const r = await fetch(loc.url, { headers: { 'user-agent': 'MagnetideBot/1.0' } });
       const html = await r.text();
       return extractMovies(html, loc.name, loc.url);
