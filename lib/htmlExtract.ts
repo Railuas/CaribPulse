@@ -25,7 +25,8 @@ export function pickBetween(tag: string, html: string): string | undefined {
 }
 
 export function pickById(id: string, html: string): string | undefined {
-  const re = new RegExp(`<([a-z0-9]+)[^>]*id=["']${id}["'][^>]*>([\\s\\S]*?)<\/\1>`, 'i');
+  // Use \\1 to produce a literal backreference \1 inside the RegExp string
+  const re = new RegExp(`<([a-z0-9]+)[^>]*id=["']${id}["'][^>]*>([\\s\\S]*?)<\/\\1>`, 'i');
   const m = html.match(re);
   return m ? m[2] : undefined;
 }
