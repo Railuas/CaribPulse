@@ -65,3 +65,5 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     res.status(200).json({ ok:false, items:[], error: e?.message || 'failed' });
   }
 }
+
+export const config = { api: { externalResolver: true }, runtime: 'nodejs' };
