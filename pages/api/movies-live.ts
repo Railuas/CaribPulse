@@ -1,7 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { CINEMAS } from '../../lib/cinemas';
 
-type Show = { title: string; times: string[]; rating?: string; format?: string };
+type Show = { title: string; times: string[]; rating?: string; format?: string; poster?: string };
 type CinemaShows = { key: string; island: string; name: string; url: string; shows: Show[] };
 
 function toText(html: string){
@@ -13,6 +13,22 @@ function toText(html: string){
     .replace(/&nbsp;/g, ' ')
     .replace(/\s+/g, ' ')
     .trim();
+}
+
+
+function findPosterForTitle(html: string, title: string): string | undefined {
+  if (!title) return undefined;
+  const safe = title.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const re = new RegExp(`<img[^>]+(?:alt=["'][^"']*${safe}[^"']*["']|title=["'][^"']*${safe}[^"']*["'])[^>]*>`, 'i');
+  const m = html.match(re);
+  if (m) {
+    const tag = m[0];
+    const src = tag.match(/\ssrc=["']([^"']+)["']/i)?.[1] || tag.match(/\sdata-src=["']([^"']+)["']/i)?.[1];
+    if (src) {
+      try { return new URL(src, 'https://caribbeancinemas.com').toString(); } catch { return src; }
+    }
+  }
+  return undefined;
 }
 
 const TIME_RE = /\b(\d{1,2}:\d{2})\s?(AM|PM)\b/gi;
@@ -81,7 +97,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     for (const c of list){
       try{
         const html = await fetchText(c.url);
-        const shows = parseTheater(toText(html));
+        const shows = parseTheater(toText(html), html);
         results.push({ key: c.key, island: c.island, name: c.name, url: c.url, shows });
       }catch(e){
         results.push({ key: c.key, island: c.island, name: c.name, url: c.url, shows: [] });
