@@ -50,9 +50,31 @@ export default function Movies() {
     (async () => {
       setLoading(true);
       try{
-        const r = await fetch(`/api/movies?country=${encodeURIComponent(country)}`);
-        const j = await r.json();
-        setItems(Array.isArray(j.items) ? j.items : []);
+        let flat: Item[] = [];
+try {
+  // Prefer exact theater scraping (covers all Caribbean Cinemas)
+  const rLive = await fetch(`/api/movies-live?island=${encodeURIComponent(country)}`);
+  const jLive = await rLive.json();
+  if (Array.isArray(jLive)) {
+    // Filter by island if set, otherwise include all
+    const rows = (country && country !== 'All Caribbean')
+      ? jLive.filter((c:any)=> (c.island||'').toLowerCase() === country.toLowerCase())
+      : jLive;
+    for (const c of rows) {
+      for (const s of (c.shows||[])) {
+        flat.push({ cinema: c.name, url: c.url, title: s.title, times: s.times||[] });
+      }
+    }
+  }
+} catch {}
+if (flat.length === 0) {
+  // Fallback to generic parser
+  const r = await fetch(`/api/movies?country=${encodeURIComponent(country)}`);
+  const j = await r.json();
+  flat = Array.isArray(j.items) ? j.items : [];
+}
+setItems(flat);
+
       } finally {
         setLoading(false);
       }

@@ -21,9 +21,20 @@ export default function FerriesDetail(){
     const run = async ()=>{
       setLoading(true);
       try{
-        const r = await fetch(`/api/ferries?country=${encodeURIComponent(country)}`);
-        const json = await r.json();
-        setItems(json.items || []);
+        let items: Ferry[] = [];
+try{
+  const rLive = await fetch(`/api/ferries-live?country=${encodeURIComponent(country)}`);
+  const jLive = await rLive.json();
+  if (Array.isArray(jLive.items)) items = jLive.items;
+  else if (Array.isArray(jLive)) items = jLive; // some versions return raw array
+}catch{}
+if (items.length === 0){
+  const r = await fetch(`/api/ferries?country=${encodeURIComponent(country)}`);
+  const json = await r.json();
+  items = json.items || [];
+}
+setItems(items);
+
       } finally { setLoading(false); }
     };
     run();
