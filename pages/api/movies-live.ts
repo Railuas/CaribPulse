@@ -33,7 +33,7 @@ function findPosterForTitle(html: string, title: string): string | undefined {
 
 const TIME_RE = /\b(\d{1,2}:\d{2})\s?(AM|PM)\b/gi;
 
-function parseTheater(text: string, html?: string): Show[] {
+function parseTheater(text: string): Show[] {
   // Heuristic parser: split by 'SHOW DETAILS' (EN) or 'VER MAS DETALLES' (ES)
   const parts = text.split(/SHOW DETAILS|VER MAS DETALLES/i).slice(1);
   const out: Show[] = [];
@@ -45,7 +45,7 @@ function parseTheater(text: string, html?: string): Show[] {
     const formatMatch = part.match(/(CXC|IMAX|4DX|PREMIUM|SCREENX|ATMOS|VIP)/i);
     const times = Array.from(part.matchAll(TIME_RE)).map(m => (m[0].toUpperCase()));
     if (title && times.length){
-      out.push({ title, times, rating: ratingMatch?.[1]?.toUpperCase(), format: formatMatch?.[1]?.toUpperCase()  poster: findPosterForTitle(html, title) });
+      out.push({ title, times, rating: ratingMatch?.[1]?.toUpperCase(), format: formatMatch?.[1]?.toUpperCase() });
     }
   }
   // Fallback: some pages don’t use the split token; try by movie blocks starting with '#'
@@ -56,7 +56,7 @@ function parseTheater(text: string, html?: string): Show[] {
       const title = tmatch ? tmatch[1].trim() : '';
       const times = Array.from(b.matchAll(TIME_RE)).map(m => (m[0].toUpperCase()));
       const ratingMatch = b.match(/RATING:\s*([A-Z0-9\-+]+)/i) || b.match(/CLASIFICACION:\s*([A-Z0-9\-+]+)/i);
-      if (title && times.length) out.push({ title, times, rating: ratingMatch?.[1]?.toUpperCase()  poster: findPosterForTitle(html, title) });
+      if (title && times.length) out.push({ title, times, rating: ratingMatch?.[1]?.toUpperCase() });
     }
   }
   // De-dup
