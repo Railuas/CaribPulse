@@ -37,6 +37,27 @@ function SkeletonCard(){
   );
 }
 
+function normalizeLive(c: any): any[] {
+  // From /api/movies-live: cinema-level object with shows[]
+  const country = c.island || c.country;
+  const out: any[] = [];
+  for (const s of (c.shows || [])) {
+    out.push({ cinema: c.name, url: c.url, title: s.title, times: s.times || [], poster: s.poster, country });
+  }
+  return out;
+}
+function normalizeLegacy(items: any[]): any[] {
+  // From /api/movies: already flat; pass through, but rename fields
+  return (items || []).map((x: any) => ({
+    cinema: x.cinema || x.theater || '',
+    url: x.url,
+    title: x.title,
+    times: x.times || x.showtimes || [],
+    poster: x.poster,
+    country: x.country || x.island
+  }));
+}
+
 export default function Movies() {
   const router = useRouter();
   const country = typeof router.query.country === 'string' ? router.query.country : 'All Caribbean';
