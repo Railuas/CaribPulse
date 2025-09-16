@@ -1,7 +1,4 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-/* small helpers */
-body { background: #0a0a0a; color: #fafafa; }
-a { color: inherit; }
+/* keep this file minimal; site-specific colors/spacing should live in components */
