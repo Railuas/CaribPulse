@@ -1,61 +1,36 @@
-// pages/news/index.tsx
-import Head from 'next/head';
-import Layout from '@/components/Layout';
-import NewsCard from '@/components/NewsCard';
-import { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import NewsCard, { NewsItem } from '@/components/NewsCard';
 
-type Item = {
-  id: string;
-  title: string;
-  url: string;
-  source: string;
-  country: string;
-  published?: string;
-  image?: string;
-  summary?: string;
-};
-
-const COUNTRIES = [
-  'All Caribbean','Jamaica','Trinidad and Tobago','Barbados','Bahamas','Dominican Republic',
-  'Puerto Rico','Saint Lucia','Grenada','Antigua and Barbuda','Guyana','St. Kitts and Nevis','U.S. Virgin Islands'
-];
-
-export default function NewsIndex(){
-  const [country, setCountry] = useState<string>('All Caribbean');
-  const [items, setItems] = useState<Item[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
+export default function NewsPage(){
+  const [items, setItems] = useState<NewsItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [country, setCountry] = useState('All Caribbean');
 
   useEffect(()=>{
-    (async()=>{
+    (async ()=>{
       setLoading(true);
-      const r = await fetch(`/api/news?country=${encodeURIComponent(country)}`);
-      const j = await r.json();
-      setItems(Array.isArray(j.items) ? j.items : []);
-      setLoading(false);
+      try{
+        const r = await fetch(`/api/news?country=${encodeURIComponent(country)}`);
+        const j = await r.json();
+        setItems(Array.isArray(j.items) ? j.items : []);
+      }finally{
+        setLoading(false);
+      }
     })();
-  },[country]);
+  }, [country]);
 
   return (
-    <Layout>
-      <Head><title>News — {country} | Magnetide</title></Head>
+    <main className="max-w-6xl mx-auto p-4 sm:p-6">
+      <h1 className="text-2xl font-bold">News</h1>
+      <p className="opacity-80 text-sm mt-1">Regional by default. Switch to a country to see its feed.</p>
 
-      <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:12,marginBottom:12,flexWrap:'wrap'}}>
-        <h1 style={{margin:'10px 0'}}>Latest News — {country}</h1>
-        <div className="select-wrap">
-          <label className="select-label">Country</label>
-          <select className="select" value={country} onChange={e=>setCountry(e.target.value)}>
-            {COUNTRIES.map(c=><option key={c}>{c}</option>)}
-          </select>
-        </div>
-      </div>
-
-      {loading ? <div className="muted small">Loading…</div> : null}
-
-      <div className="grid" style={{gridTemplateColumns:'repeat(auto-fill,minmax(360px,1fr))', gap:12}}>
-        {items.map(it => (
-          <NewsCard key={it.id} id={it.id} title={it.title} image={it.image} source={it.source} published={it.published} />
+      <div className="mt-4 grid" style={{gridTemplateColumns:'repeat(auto-fill,minmax(320px,1fr))', gap:12}}>
+        {loading ? Array.from({length:6}).map((_,i)=>(
+          <div key={i} className="h-40 rounded-xl border border-white/10 bg-white/5 animate-pulse" />
+        )) : items.map(it => (
+          <NewsCard key={it.id} item={it} />
         ))}
       </div>
-    </Layout>
+    </main>
   );
 }
