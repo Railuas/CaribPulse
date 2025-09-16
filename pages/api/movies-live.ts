@@ -5,6 +5,8 @@ import { CINEMAS } from '../../lib/cinemas';
 type Show = { title: string; times: string[]; rating?: string; format?: string; poster?: string };
 type CinemaShows = { key: string; island: string; name: string; url: string; shows: Show[] };
 
+function norm(s: string){ return (s||'').toLowerCase().replace(/&/g,'and').replace(/[^a-z]/g,''); }
+
 function toText(html: string){
   return html
     .replace(/<script[\s\S]*?<\/script>/gi, ' ')
@@ -32,53 +34,46 @@ function findPosterForTitle(html: string | undefined, title: string): string | u
 
 const TIME_RE = /\b(\d{1,2}:\d{2})\s?(AM|PM)\b/gi;
 
-// Overloads to keep TS happy regardless of previous signature
 function parseTheater(text: string): Show[];
 function parseTheater(text: string, html?: string): Show[];
 function parseTheater(text: string, html?: string): Show[] {
-  const parts = text.split(/SHOW DETAILS|VER MAS DETALLES/i).slice(1);
   const out: Show[] = [];
-  for (const part of parts){
-    const titleMatch = part.match(/#\s*([\w\-:'!.,\s]+)/) || part.match(/\b([A-Z][\w\-:'!.,\s]{3,60})\b/);
-    const title = titleMatch ? titleMatch[1].trim() : '';
-    const ratingMatch = part.match(/RATING:\s*([A-Z0-9\-+]+)/i) || part.match(/CLASIFICACION:\s*([A-Z0-9\-+]+)/i);
-    const formatMatch = part.match(/(CXC|IMAX|4DX|PREMIUM|SCREENX|ATMOS|VIP)/i);
-    const times = Array.from(part.matchAll(TIME_RE)).map(m => (m[0].toUpperCase()));
-    if (title && times.length){
-      out.push({
-        title,
-        times,
-        rating: ratingMatch?.[1]?.toUpperCase(),
-        format: formatMatch?.[1]?.toUpperCase(),
-        poster: findPosterForTitle(html, title)
-      });
-    }
-  }
-  if (out.length === 0){
-    const blocks = partByHash(text);
+
+  // Caribbean Cinemas cards usually include "SHOW DETAILS" / "VER MAS DETALLES"
+  const blocks = text.split(/SHOW DETAILS|VER MAS DETALLES/i);
+  if (blocks.length > 1){
     for (const b of blocks){
-      const tmatch = b.match(/^#\s*(.+?)\s(\bGENRE\b|RATING:|CLASIFICACION:|\d{1,2}:\d{2}\s?(AM|PM))/i);
-      const title = tmatch ? tmatch[1].trim() : '';
-      const times = Array.from(b.matchAll(TIME_RE)).map(m => (m[0].toUpperCase()));
-      const ratingMatch = b.match(/RATING:\s*([A-Z0-9\-+]+)/i) || b.match(/CLASIFICACION:\s*([A-Z0-9\-+]+)/i);
-      if (title && times.length) out.push({ title, times, rating: ratingMatch?.[1]?.toUpperCase(), poster: findPosterForTitle(html, title) });
+      const titleMatch = b.match(/#\s*([A-Z0-9][\w\-:'!.,\s]{2,80})/);
+      const title = titleMatch ? titleMatch[1].trim() : '';
+      const times = Array.from(b.matchAll(TIME_RE)).map(m => m[0].toUpperCase());
+      if (title && times.length){
+        const rating = b.match(/RATING:\s*([A-Z0-9\-+]+)/i)?.[1]?.toUpperCase();
+        const format = b.match(/\b(CXC|IMAX|4DX|PREMIUM|SCREENX|ATMOS|VIP)\b/i)?.[1]?.toUpperCase();
+        out.push({ title, times, rating, format, poster: findPosterForTitle(html, title) });
+      }
     }
   }
+
+  // fallback: detect by "# Title" headings
+  if (!out.length){
+    for (const b of text.split(/\s#\s/)){
+      const blk = b.startsWith('# ') ? b : '# ' + b;
+      const tmatch = blk.match(/^#\s*(.+?)\s(\bGENRE\b|RATING:|CLASIFICACION:|\d{1,2}:\d{2}\s?(AM|PM))/i);
+      const title = tmatch ? tmatch[1].trim() : '';
+      const times = Array.from(blk.matchAll(TIME_RE)).map(m => m[0].toUpperCase());
+      if (title && times.length) out.push({ title, times, poster: findPosterForTitle(html, title) });
+    }
+  }
+
+  // dedupe/merge
   const uniq = new Map<string, Show>();
   for (const s of out){
-    const k = s.title + '|' + (s.rating || '');
+    const k = s.title.toUpperCase();
     const prev = uniq.get(k);
     if (!prev) uniq.set(k, s);
-    else {
-      const merged = Array.from(new Set([...(prev.times||[]), ...(s.times||[]) ]));
-      uniq.set(k, { ...prev, times: merged, poster: prev.poster || s.poster });
-    }
+    else uniq.set(k, { ...prev, times: Array.from(new Set([...(prev.times||[]), ...(s.times||[])])), poster: prev.poster || s.poster });
   }
   return Array.from(uniq.values());
-}
-
-function partByHash(text: string){
-  return text.split(/\s#\s/).map((p,i)=> (i===0 ? p : ('# ' + p)));
 }
 
 async function fetchText(url: string, timeoutMs = 12000){
@@ -92,8 +87,15 @@ async function fetchText(url: string, timeoutMs = 12000){
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<CinemaShows[] | { error: string }>) {
-  const island = (req.query.island as string | undefined)?.toLowerCase();
-  const list = island ? CINEMAS.filter(c => c.island.toLowerCase().includes(island)) : CINEMAS;
+  const islandRaw = String((req.query.island as string | undefined) || 'All Caribbean');
+  const iln = norm(islandRaw);
+  const list = iln === norm('All Caribbean')
+    ? CINEMAS
+    : CINEMAS.filter(c => {
+        const n = norm(c.island);
+        return n === iln || n.includes(iln) || iln.includes(n);
+      });
+
   try{
     const results: CinemaShows[] = [];
     for (const c of list){
@@ -101,7 +103,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
         const html = await fetchText(c.url);
         const shows = parseTheater(toText(html), html);
         results.push({ key: c.key, island: c.island, name: c.name, url: c.url, shows });
-      }catch(e){
+      }catch{
         results.push({ key: c.key, island: c.island, name: c.name, url: c.url, shows: [] });
       }
     }
