@@ -1,3 +1,4 @@
+// pages/api/movies-live.ts
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { CINEMAS } from '../../lib/cinemas';
 
@@ -31,7 +32,7 @@ function findPosterForTitle(html: string | undefined, title: string): string | u
 
 const TIME_RE = /\b(\d{1,2}:\d{2})\s?(AM|PM)\b/gi;
 
-// Overloads ensure TS accepts 1 or 2 args everywhere
+// Overloads to keep TS happy regardless of previous signature
 function parseTheater(text: string): Show[];
 function parseTheater(text: string, html?: string): Show[];
 function parseTheater(text: string, html?: string): Show[] {
@@ -110,4 +111,3 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     res.status(200).json({ error: e?.message || 'failed' });
   }
 }
-

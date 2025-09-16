@@ -7,7 +7,7 @@ export type MovieItem = {
   title: string;
   times?: string[];
   poster?: string;
-  country?: string; // island/country badge
+  country?: string;
 };
 
 export default function MovieCard({ item }: { item: MovieItem }) {

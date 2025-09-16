@@ -1,5 +1,4 @@
 // lib/newsSources.ts
-// Working RSS anchors across the Caribbean. Add/remove as needed.
 export type Feed = { name: string; url: string; country: string };
 
 export const FEEDS: Feed[] = [
