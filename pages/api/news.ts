@@ -1,7 +1,7 @@
 // pages/api/news.ts
 import type { NextApiRequest, NextApiResponse } from 'next';
 import Parser from 'rss-parser';
-import { FEEDS } from '@/lib/newsSources';
+import { FEEDS } from '../../lib/newsSources';
 
 function norm(s: string){ return (s||'').toLowerCase().replace(/&/g,'and').replace(/[^a-z]/g,''); }
 
